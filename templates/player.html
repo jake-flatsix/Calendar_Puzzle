@@ -424,12 +424,17 @@
             renderBoard();
             renderPieces();
 
-            // Set today's date as default
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            document.getElementById('date-input').value = `${year}-${month}-${day}`;
+            // Set today's date as default (with small delay to ensure DOM is ready)
+            setTimeout(() => {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const dateInput = document.getElementById('date-input');
+                dateInput.value = `${year}-${month}-${day}`;
+                // Force the input to recognize the new value
+                dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }, 0);
 
             // Add click handler to remove piece when clicking outside board
             document.addEventListener('click', (e) => {

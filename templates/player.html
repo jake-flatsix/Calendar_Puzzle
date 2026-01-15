@@ -1189,6 +1189,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         let dragSourceType = null; // 'sidebar' or 'board'
         let dragPieceIndex = null; // Track which piece is being interacted with
         let dragStartPosition = null; // Track initial touch position
+        let isProcessingDrag = false; // Prevent duplicate drag starts
 
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
@@ -1844,6 +1845,12 @@ Sep Oct Nov Dec 28 29 30 14`;
         // ===== NEW DRAG SYSTEM =====
 
         function handlePieceMouseDown(e, index, source) {
+            // Prevent duplicate events during active drag
+            if (isProcessingDrag || isDragging) {
+                console.log('Ignoring duplicate mousedown during drag');
+                return;
+            }
+
             console.log('handlePieceMouseDown', index, source);
             dragStartTime = Date.now();
             dragSourceType = source;
@@ -1877,7 +1884,14 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function startDrag(e, index, source) {
+            // Prevent re-entry
+            if (isProcessingDrag || isDragging) {
+                console.log('startDrag blocked - already processing');
+                return;
+            }
+
             console.log('startDrag called', index, source);
+            isProcessingDrag = true;
             isDragging = true;
             selectedPieceIndex = index;
 
@@ -1891,11 +1905,23 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Create drag visual
             createDragElement(selectedPieceCoords, pieceColors[index], e.clientX || e.pageX, e.clientY || e.pageY);
 
-            // Mark source as dragging
-            renderPieces();
+            // Mark source as dragging (but don't re-render yet to avoid duplicate events)
+            // renderPieces();  // REMOVED - causes duplicate touch events
+
+            isProcessingDrag = false;
+            console.log('Drag started successfully');
         }
 
         function grabAndStartDrag(e, row, col, pieceName, pieceIndex) {
+            // Prevent re-entry
+            if (isProcessingDrag || isDragging) {
+                console.log('grabAndStartDrag blocked - already processing');
+                return;
+            }
+
+            console.log('grabAndStartDrag called');
+            isProcessingDrag = true;
+
             const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
             const storedOrientationIndex = clickedCell.orientationIndex;
 
@@ -1916,7 +1942,10 @@ Sep Oct Nov Dec 28 29 30 14`;
             createDragElement(selectedPieceCoords, pieceColors[pieceIndex], e.clientX || e.pageX, e.clientY || e.pageY);
 
             renderBoard();
-            renderPieces();
+            // Don't render pieces here to avoid duplicate events
+
+            isProcessingDrag = false;
+            console.log('Grab and drag started successfully');
         }
 
         function createDragElement(coords, color, x, y) {
@@ -1986,6 +2015,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             }
 
             isDragging = false;
+            isProcessingDrag = false;
             dragStartTime = 0;
             dragSourceType = null;
             dragPieceIndex = null;

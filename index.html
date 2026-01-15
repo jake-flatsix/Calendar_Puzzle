@@ -718,15 +718,28 @@ Sep Oct Nov Dec 28 29 30 14`;
             if (dateStr.toLowerCase() === 'today' || !dateStr) {
                 dateObj = new Date();
             } else {
-                // Try parsing YYYY-MM-DD or MM-DD
+                // Parse date string in local time (not UTC) to avoid timezone issues
                 if (dateStr.includes('-')) {
                     const parts = dateStr.split('-');
+                    let year, month, day;
+
                     if (parts.length === 2) {
-                        // MM-DD format, add current year
-                        dateStr = `${new Date().getFullYear()}-${dateStr}`;
+                        // MM-DD format
+                        year = new Date().getFullYear();
+                        month = parseInt(parts[0], 10);
+                        day = parseInt(parts[1], 10);
+                    } else if (parts.length === 3) {
+                        // YYYY-MM-DD format
+                        year = parseInt(parts[0], 10);
+                        month = parseInt(parts[1], 10);
+                        day = parseInt(parts[2], 10);
                     }
+
+                    // Create date in local time (month is 0-indexed)
+                    dateObj = new Date(year, month - 1, day);
+                } else {
+                    dateObj = new Date();
                 }
-                dateObj = new Date(dateStr);
             }
 
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

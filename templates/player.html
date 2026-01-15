@@ -388,379 +388,9 @@
     </div>
 
     <script>
-        // ===== EMBEDDED DATA =====
-        // Board configuration (from board.txt)
-        const BOARD_RAW_DATA = `Jan Feb Mar Apr 1 2 3 Mon Tue
-May 4 5 6 7 8 9 Wed .
-Jun 10 11 12 13 31 15 Thu .
-Jul 16 17 18 19 20 21 Fri Sat
-Aug 22 23 24 25 26 27 . Sun
-Sep Oct Nov Dec 28 29 30 14`;
-
-        // Pieces configuration (from pieces.txt)
-        const PIECES_RAW_DATA = [
-            { name: 'Piece1', shape: '#####' },
-            { name: 'Piece2', shape: '####\n#' },
-            { name: 'Piece3', shape: '###\n#\n#' },
-            { name: 'Piece4', shape: '###\n #\n #' },
-            { name: 'Piece5', shape: ' #\n##\n#\n#' },
-            { name: 'Piece6', shape: '#\n##\n#\n#' },
-            { name: 'Piece7', shape: '##\n ##\n #' },
-            { name: 'Piece8', shape: '##\n #\n ##' },
-            { name: 'Piece9', shape: '##\n#\n##' },
-            { name: 'Piece10', shape: '##\n##\n#' }
-        ];
-
-        // ===== CORE CLASSES (Ported from Python) =====
-
-        class Coord {
-            constructor(row, col) {
-                this.row = row;
-                this.col = col;
-            }
-
-            add(other) {
-                return new Coord(this.row + other.row, this.col + other.col);
-            }
-
-            equals(other) {
-                return this.row === other.row && this.col === other.col;
-            }
-
-            toString() {
-                return `${this.row},${this.col}`;
-            }
-        }
-
-        class Board {
-            constructor(grid, width, height) {
-                this.grid = grid;  // Object with "row,col" keys
-                this.width = width;
-                this.height = height;
-                this.coords = new Set(Object.keys(grid));
-            }
-
-            isValidCoord(coord) {
-                return this.grid.hasOwnProperty(coord.toString());
-            }
-
-            getLabel(coord) {
-                return this.grid[coord.toString()] || null;
-            }
-        }
-
-        class Piece {
-            constructor(name, coords) {
-                this.name = name;
-                this.coords = coords;  // Array of Coord objects
-                this._normalize();
-            }
-
-            _normalize() {
-                if (this.coords.length === 0) return;
-
-                const minRow = Math.min(...this.coords.map(c => c.row));
-                const minCol = Math.min(...this.coords.map(c => c.col));
-
-                this.coords = this.coords.map(c =>
-                    new Coord(c.row - minRow, c.col - minCol)
-                );
-            }
-
-            rotate90() {
-                const rotated = this.coords.map(c => new Coord(c.col, -c.row));
-                return new Piece(this.name, rotated);
-            }
-
-            flipHorizontal() {
-                const flipped = this.coords.map(c => new Coord(c.row, -c.col));
-                return new Piece(this.name, flipped);
-            }
-
-            getAllOrientations() {
-                const orientations = [];
-                const seen = new Set();
-
-                let current = this;
-                for (let flip = 0; flip < 2; flip++) {
-                    for (let rot = 0; rot < 4; rot++) {
-                        const key = current.coords
-                            .map(c => `${c.row},${c.col}`)
-                            .sort()
-                            .join('|');
-
-                        if (!seen.has(key)) {
-                            seen.add(key);
-                            orientations.push(current);
-                        }
-
-                        current = current.rotate90();
-                    }
-                    current = current.flipHorizontal();
-                }
-
-                return orientations;
-            }
-
-            placeAt(coord) {
-                return this.coords.map(c => coord.add(c));
-            }
-        }
-
-        class GameState {
-            constructor(board, targetCoords) {
-                this.board = board;
-                this.targetCoords = new Set(targetCoords.map(c => c.toString()));
-                this.occupied = new Set();
-                this.placements = [];
-            }
-
-            canPlace(piece, coord) {
-                const absoluteCoords = piece.placeAt(coord);
-
-                for (const absCoord of absoluteCoords) {
-                    // Check if on board
-                    if (!this.board.isValidCoord(absCoord)) {
-                        return false;
-                    }
-
-                    // Check if occupied
-                    if (this.occupied.has(absCoord.toString())) {
-                        return false;
-                    }
-
-                    // Check if target
-                    if (this.targetCoords.has(absCoord.toString())) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            placePiece(piece, coord, pieceName, orientationIdx) {
-                const absoluteCoords = piece.placeAt(coord);
-                for (const absCoord of absoluteCoords) {
-                    this.occupied.add(absCoord.toString());
-                }
-                this.placements.push({
-                    pieceName,
-                    orientationIdx,
-                    coord,
-                    absoluteCoords
-                });
-            }
-
-            removeLastPiece() {
-                if (this.placements.length === 0) return;
-
-                const { absoluteCoords } = this.placements.pop();
-                for (const absCoord of absoluteCoords) {
-                    this.occupied.delete(absCoord.toString());
-                }
-            }
-
-            isComplete() {
-                // All board coords except targets should be covered
-                const requiredCoverage = new Set();
-                for (const coordStr of this.board.coords) {
-                    if (!this.targetCoords.has(coordStr)) {
-                        requiredCoverage.add(coordStr);
-                    }
-                }
-
-                if (requiredCoverage.size !== this.occupied.size) {
-                    return false;
-                }
-
-                for (const coord of requiredCoverage) {
-                    if (!this.occupied.has(coord)) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            getUncoveredCoords() {
-                const uncovered = [];
-                for (const coordStr of this.board.coords) {
-                    if (!this.targetCoords.has(coordStr) && !this.occupied.has(coordStr)) {
-                        const [row, col] = coordStr.split(',').map(Number);
-                        uncovered.push(new Coord(row, col));
-                    }
-                }
-                return uncovered;
-            }
-        }
-
-        class PuzzleSolver {
-            constructor(board, pieces) {
-                this.board = board;
-                this.pieces = pieces;
-                this.pieceOrientationsMap = {};
-
-                // Pre-compute all orientations for each piece
-                for (const piece of pieces) {
-                    this.pieceOrientationsMap[piece.name] = piece.getAllOrientations();
-                }
-            }
-
-            solve(targetCoords) {
-                const state = new GameState(this.board, targetCoords);
-                const unusedPieces = [...this.pieces];
-
-                if (this._backtrack(state, unusedPieces)) {
-                    return state;
-                }
-                return null;
-            }
-
-            _backtrack(state, unusedPieces) {
-                // Base case: all pieces placed
-                if (unusedPieces.length === 0) {
-                    return state.isComplete();
-                }
-
-                // Get next uncovered coordinate
-                const uncovered = state.getUncoveredCoords();
-                if (uncovered.length === 0) {
-                    return state.isComplete();
-                }
-
-                // Pick first uncovered coordinate as anchor
-                const targetCoord = uncovered.reduce((min, c) =>
-                    (c.row < min.row || (c.row === min.row && c.col < min.col)) ? c : min
-                );
-
-                // Try each remaining piece
-                for (let pieceIdx = 0; pieceIdx < unusedPieces.length; pieceIdx++) {
-                    const piece = unusedPieces[pieceIdx];
-                    const orientations = this.pieceOrientationsMap[piece.name];
-
-                    // Try all orientations
-                    for (let orientIdx = 0; orientIdx < orientations.length; orientIdx++) {
-                        const orientedPiece = orientations[orientIdx];
-
-                        // Try placing so piece covers target coordinate
-                        for (const pieceCoord of orientedPiece.coords) {
-                            const placementCoord = new Coord(
-                                targetCoord.row - pieceCoord.row,
-                                targetCoord.col - pieceCoord.col
-                            );
-
-                            if (state.canPlace(orientedPiece, placementCoord)) {
-                                // Place piece
-                                state.placePiece(orientedPiece, placementCoord, piece.name, orientIdx);
-
-                                // Recurse with remaining pieces
-                                const remaining = [
-                                    ...unusedPieces.slice(0, pieceIdx),
-                                    ...unusedPieces.slice(pieceIdx + 1)
-                                ];
-
-                                if (this._backtrack(state, remaining)) {
-                                    return true;
-                                }
-
-                                // Backtrack
-                                state.removeLastPiece();
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        // ===== UTILITY FUNCTIONS =====
-
-        function parseBoardData(rawData) {
-            const lines = rawData.trim().split('\n');
-            const grid = {};
-            let maxWidth = 0;
-            const height = lines.length;
-
-            for (let row = 0; row < lines.length; row++) {
-                const cells = lines[row].trim().split(/\s+/);
-                maxWidth = Math.max(maxWidth, cells.length);
-
-                for (let col = 0; col < cells.length; col++) {
-                    const coord = new Coord(row, col);
-                    grid[coord.toString()] = cells[col];
-                }
-            }
-
-            return new Board(grid, maxWidth, height);
-        }
-
-        function parsePiecesData(rawData) {
-            return rawData.map(item => {
-                const lines = item.shape.split('\n');
-                const coords = [];
-
-                for (let row = 0; row < lines.length; row++) {
-                    for (let col = 0; col < lines[row].length; col++) {
-                        if (lines[row][col] === '#') {
-                            coords.push(new Coord(row, col));
-                        }
-                    }
-                }
-
-                return new Piece(item.name, coords);
-            });
-        }
-
-        function parseDateStr(dateStr) {
-            let dateObj;
-
-            if (dateStr.toLowerCase() === 'today' || !dateStr) {
-                dateObj = new Date();
-            } else {
-                // Try parsing YYYY-MM-DD or MM-DD
-                if (dateStr.includes('-')) {
-                    const parts = dateStr.split('-');
-                    if (parts.length === 2) {
-                        // MM-DD format, add current year
-                        dateStr = `${new Date().getFullYear()}-${dateStr}`;
-                    }
-                }
-                dateObj = new Date(dateStr);
-            }
-
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-            const month = months[dateObj.getMonth()];
-            const day = dateObj.getDate().toString();
-            const weekday = weekdays[dateObj.getDay()];
-
-            return { month, day, weekday };
-        }
-
-        function getTargetCoordsFromBoard(board, month, day, weekday) {
-            const targetCoords = [];
-
-            for (const [coordStr, label] of Object.entries(board.grid)) {
-                if (label === month || label === day || label === weekday) {
-                    const [row, col] = coordStr.split(',').map(Number);
-                    targetCoords.push(new Coord(row, col));
-                }
-            }
-
-            if (targetCoords.length !== 3) {
-                throw new Error(`Expected 3 target coordinates, found ${targetCoords.length}`);
-            }
-
-            return targetCoords;
-        }
-
         // Game state
         let boardData = null;
         let piecesData = [];
-        let solver = null;  // PuzzleSolver instance
         let targetCoords = [];
         let occupiedCoords = [];
         let selectedPieceIndex = null;
@@ -788,13 +418,9 @@ Sep Oct Nov Dec 28 29 30 14`;
         ];
 
         // Initialize
-        function init() {
-            loadBoard();
-            loadPieces();
-
-            // Initialize solver with board and pieces
-            solver = new PuzzleSolver(boardData, piecesData);
-
+        async function init() {
+            await loadBoard();
+            await loadPieces();
             renderBoard();
             renderPieces();
 
@@ -823,14 +449,14 @@ Sep Oct Nov Dec 28 29 30 14`;
             });
         }
 
-        function loadBoard() {
-            // Parse embedded board data
-            boardData = parseBoardData(BOARD_RAW_DATA);
+        async function loadBoard() {
+            const response = await fetch('/api/board');
+            boardData = await response.json();
         }
 
-        function loadPieces() {
-            // Parse embedded pieces data
-            piecesData = parsePiecesData(PIECES_RAW_DATA);
+        async function loadPieces() {
+            const response = await fetch('/api/pieces');
+            piecesData = await response.json();
 
             // Initialize orientation index for each piece to 0
             piecesData.forEach((piece, index) => {
@@ -1136,7 +762,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             return true;
         }
 
-        function handleCellClick(row, col, event) {
+        async function handleCellClick(row, col, event) {
             if (event) event.stopPropagation();  // Prevent global click handler from firing
 
             console.log('handleCellClick called', row, col);
@@ -1161,35 +787,21 @@ Sep Oct Nov Dec 28 29 30 14`;
                 col: col + c.col
             }));
 
-            // Validate placement locally
-            let valid = true;
-            let reason = "";
+            // Validate placement with backend
+            const response = await fetch('/api/validate_placement', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    piece_coords: selectedPieceCoords,
+                    placement: { row, col },
+                    target_coords: targetCoords,
+                    occupied: occupiedCoords
+                })
+            });
 
-            for (const coord of absoluteCoords) {
-                // Check if on board
-                const coordKey = `${coord.row},${coord.col}`;
-                if (!boardData.grid.hasOwnProperty(coordKey)) {
-                    valid = false;
-                    reason = "Piece extends outside board boundaries";
-                    break;
-                }
+            const result = await response.json();
 
-                // Check if occupied
-                if (occupiedCoords.some(o => o.row === coord.row && o.col === coord.col)) {
-                    valid = false;
-                    reason = "Piece overlaps with already placed pieces";
-                    break;
-                }
-
-                // Check if covering target
-                if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
-                    valid = false;
-                    reason = "Piece covers the target date";
-                    break;
-                }
-            }
-
-            if (valid) {
+            if (result.valid) {
                 // Place the piece
                 const piece = piecesData[selectedPieceIndex];
                 const pieceColor = pieceColors[selectedPieceIndex];
@@ -1215,9 +827,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 renderBoard();
                 renderPieces();
 
-                checkWin();
+                await checkWin();
             } else {
-                alert(`Cannot place piece: ${reason}`);
+                alert(`Cannot place piece: ${result.reason}`);
             }
         }
 
@@ -1281,7 +893,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             cycleOrientation();
         }
 
-        function setDate() {
+        async function setDate() {
             const dateInput = document.getElementById('date-input');
             const dateStr = dateInput.value;
 
@@ -1290,16 +902,24 @@ Sep Oct Nov Dec 28 29 30 14`;
                 return;
             }
 
-            try {
-                // Parse date string to get month, day, weekday
-                const parsed = parseDateStr(dateStr);
-                targetDate = parsed;
+            const response = await fetch('/api/target_coords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: dateStr })
+            });
 
-                // Get target coordinates from board
-                targetCoords = getTargetCoordsFromBoard(boardData, parsed.month, parsed.day, parsed.weekday);
+            const result = await response.json();
+
+            if (result.success) {
+                targetCoords = result.coords;
+                targetDate = {
+                    month: result.month,
+                    day: result.day,
+                    weekday: result.weekday
+                };
 
                 document.getElementById('status').textContent =
-                    `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
+                    `Target: ${result.month} ${result.day}, ${result.weekday}`;
 
                 // Enable solve and hint buttons
                 document.getElementById('solve-btn').disabled = false;
@@ -1307,8 +927,8 @@ Sep Oct Nov Dec 28 29 30 14`;
 
                 resetGame(false);
                 renderBoard();
-            } catch (error) {
-                alert(`Error: ${error.message}`);
+            } else {
+                alert(`Error: ${result.error}`);
             }
         }
 
@@ -1321,23 +941,19 @@ Sep Oct Nov Dec 28 29 30 14`;
             setDate();
         }
 
-        function checkWin() {
-            // Check if all non-target squares are covered
-            const targetSet = new Set(targetCoords.map(c => `${c.row},${c.col}`));
-            const occupiedSet = new Set(occupiedCoords.map(o => `${o.row},${o.col}`));
+        async function checkWin() {
+            const response = await fetch('/api/check_win', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target_coords: targetCoords,
+                    occupied: occupiedCoords
+                })
+            });
 
-            // Required coverage = all board coords minus target coords
-            let requiredCount = 0;
-            for (const coordStr of boardData.coords) {
-                if (!targetSet.has(coordStr)) {
-                    requiredCount++;
-                }
-            }
+            const result = await response.json();
 
-            // Check if solved
-            const isSolved = occupiedSet.size === requiredCount;
-
-            if (isSolved) {
+            if (result.solved) {
                 const statusEl = document.getElementById('status');
                 statusEl.textContent = '🎉 Puzzle Solved! Congratulations! 🎉';
                 statusEl.classList.add('solved');
@@ -1371,7 +987,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderPieces();
         }
 
-        function solvePuzzle() {
+        async function solvePuzzle() {
             if (!targetCoords.length) {
                 alert('Please select a date first');
                 return;
@@ -1382,7 +998,7 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             // Get solution if we don't have it yet
             if (!solution) {
-                fetchSolution();
+                await fetchSolution();
             }
 
             // Hide loading indicator
@@ -1421,10 +1037,10 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderBoard();
             renderPieces();
 
-            checkWin();
+            await checkWin();
         }
 
-        function getHint() {
+        async function getHint() {
             if (!targetCoords.length) {
                 alert('Please select a date first');
                 return;
@@ -1433,7 +1049,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Get solution if we don't have it yet
             if (!solution) {
                 showLoading('Finding next piece...');
-                fetchSolution();
+                await fetchSolution();
                 hideLoading();
             }
 
@@ -1483,40 +1099,29 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderBoard();
             renderPieces();
 
-            checkWin();
+            await checkWin();
         }
 
-        function fetchSolution() {
+        async function fetchSolution() {
             try {
-                // Use local JavaScript solver
-                const solvedState = solver.solve(targetCoords);
+                const response = await fetch('/api/solve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target_coords: targetCoords
+                    })
+                });
 
-                if (solvedState) {
-                    // Format solution to match expected structure
-                    const placements = solvedState.placements.map(placement => {
-                        const pieceNum = placement.pieceName.replace('Piece', '');
-                        const pieceIndex = piecesData.findIndex(p => p.name === placement.pieceName);
-                        const pieceColor = pieceColors[pieceIndex];
+                const result = await response.json();
 
-                        return {
-                            piece_name: placement.pieceName,
-                            piece_letter: String.fromCharCode(96 + parseInt(pieceNum)),
-                            orientation_idx: placement.orientationIdx,
-                            origin: { row: placement.coord.row, col: placement.coord.col },
-                            coords: placement.absoluteCoords.map(c => ({ row: c.row, col: c.col }))
-                        };
-                    });
-
-                    solution = {
-                        success: true,
-                        placements: placements
-                    };
+                if (result.success) {
+                    solution = result;
                 } else {
                     solution = null;
-                    console.error('No solution found');
+                    console.error('No solution found:', result.error);
                 }
             } catch (error) {
-                console.error('Error solving puzzle:', error);
+                console.error('Error fetching solution:', error);
                 solution = null;
             }
         }

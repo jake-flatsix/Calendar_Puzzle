@@ -206,9 +206,15 @@
         }
 
         .piece-grid {
-            display: inline-grid;
-            gap: 0px;
-            background: transparent;
+            display: inline-block;
+            line-height: 0;
+            font-size: 0;
+        }
+
+        .piece-grid-row {
+            display: block;
+            height: 20px;
+            line-height: 0;
         }
 
         .piece-cell {
@@ -216,6 +222,10 @@
             height: 20px;
             background: transparent;
             border: none;
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+            vertical-align: top;
         }
 
         .piece-cell.filled {
@@ -249,18 +259,18 @@
         .mobile-icon-controls {
             display: none;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 10px;
-            padding: 10px;
+            gap: 30px;
+            margin-bottom: 8px;
+            padding: 5px;
         }
 
         .mobile-status {
             display: none;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .mobile-status.solved {
@@ -268,16 +278,12 @@
         }
 
         .icon-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: none;
             border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 28px;
+            padding: 0;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -285,16 +291,14 @@
         }
 
         .icon-button:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            opacity: 1;
         }
 
-        .icon-button.reset {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .icon-button.solve {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        .icon-button svg {
+            width: 36px;
+            height: 36px;
+            fill: #333;
         }
 
         /* Modal Overlay */
@@ -385,6 +389,35 @@
             border-radius: 8px;
             font-size: 16px;
             margin-bottom: 15px;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .date-selectors {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .date-selector-group {
+            flex: 1;
+        }
+
+        .date-selector-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .date-selector-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
         }
 
         .reset-button {
@@ -679,8 +712,8 @@
             }
 
             .cell {
-                width: 32px;
-                height: 32px;
+                width: 35px;
+                height: 35px;
                 font-size: 8px;
                 border: none;
             }
@@ -705,14 +738,13 @@
                 padding: 8px;
             }
 
-            .piece-grid {
-                gap: 0px;
-                background: transparent;
+            .piece-grid-row {
+                height: 11px;
             }
 
             .piece-cell {
-                width: 14px;
-                height: 14px;
+                width: 11px;
+                height: 11px;
                 border: none;
             }
 
@@ -761,8 +793,8 @@
             }
 
             .cell {
-                width: 30px;
-                height: 30px;
+                width: 33px;
+                height: 33px;
                 font-size: 7px;
             }
 
@@ -770,14 +802,13 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .piece-grid {
-                gap: 0px;
-                background: transparent;
+            .piece-grid-row {
+                height: 10px;
             }
 
             .piece-cell {
-                width: 12px;
-                height: 12px;
+                width: 10px;
+                height: 10px;
             }
 
             .date-selector button {
@@ -807,19 +838,18 @@
             }
 
             .cell {
-                width: 28px;
-                height: 28px;
+                width: 31px;
+                height: 31px;
                 font-size: 7px;
             }
 
-            .piece-grid {
-                gap: 0px;
-                background: transparent;
+            .piece-grid-row {
+                height: 9px;
             }
 
             .piece-cell {
-                width: 10px;
-                height: 10px;
+                width: 9px;
+                height: 9px;
             }
         }
     </style>
@@ -841,9 +871,21 @@
 
         <!-- Mobile Icon Controls (only visible on mobile) -->
         <div class="mobile-icon-controls">
-            <button class="icon-button calendar" id="mobile-calendar-btn" title="Set Date">📅</button>
-            <button class="icon-button solve" id="mobile-solve-btn" title="Get Help">💡</button>
-            <button class="icon-button reset" id="mobile-reset-btn" title="Reset">🔄</button>
+            <button class="icon-button calendar" id="mobile-calendar-btn" title="Set Date">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                </svg>
+            </button>
+            <button class="icon-button solve" id="mobile-solve-btn" title="Get Help">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                </svg>
+            </button>
+            <button class="icon-button reset" id="mobile-reset-btn" title="Reset">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+            </button>
         </div>
         <div class="mobile-status" id="mobile-status">Select a date to start</div>
 
@@ -899,6 +941,32 @@
         <div class="modal-content">
             <div class="modal-header">📅 Select Date</div>
             <input type="date" id="modal-date-input" class="modal-date-input">
+            <div style="text-align: center; margin: 10px 0; color: #999;">or</div>
+            <div class="date-selectors">
+                <div class="date-selector-group">
+                    <label>Month</label>
+                    <select id="month-select">
+                        <option value="1">Jan</option>
+                        <option value="2">Feb</option>
+                        <option value="3">Mar</option>
+                        <option value="4">Apr</option>
+                        <option value="5">May</option>
+                        <option value="6">Jun</option>
+                        <option value="7">Jul</option>
+                        <option value="8">Aug</option>
+                        <option value="9">Sep</option>
+                        <option value="10">Oct</option>
+                        <option value="11">Nov</option>
+                        <option value="12">Dec</option>
+                    </select>
+                </div>
+                <div class="date-selector-group">
+                    <label>Day</label>
+                    <select id="day-select">
+                        <!-- Days 1-31 -->
+                    </select>
+                </div>
+            </div>
             <div class="modal-buttons">
                 <button class="modal-button primary" id="modal-set-date">Set Date</button>
                 <button class="modal-button primary" id="modal-today">Today</button>
@@ -1523,13 +1591,62 @@ Sep Oct Nov Dec 28 29 30 14`;
                     closeSolveModal();
                 }
             });
+
+            // Sync dropdowns when date input changes
+            document.getElementById('modal-date-input').addEventListener('change', () => {
+                const modalInput = document.getElementById('modal-date-input');
+                if (modalInput.value) {
+                    const parts = modalInput.value.split('-');
+                    if (parts.length === 3) {
+                        document.getElementById('month-select').value = parseInt(parts[1], 10);
+                        document.getElementById('day-select').value = parseInt(parts[2], 10);
+                    }
+                }
+            });
+
+            // Sync date input when dropdowns change
+            document.getElementById('month-select').addEventListener('change', syncDropdownsToDateInput);
+            document.getElementById('day-select').addEventListener('change', syncDropdownsToDateInput);
+        }
+
+        function syncDropdownsToDateInput() {
+            const monthSelect = document.getElementById('month-select');
+            const daySelect = document.getElementById('day-select');
+            const modalInput = document.getElementById('modal-date-input');
+
+            const year = new Date().getFullYear();
+            const month = String(monthSelect.value).padStart(2, '0');
+            const day = String(daySelect.value).padStart(2, '0');
+            modalInput.value = `${year}-${month}-${day}`;
         }
 
         // Modal functions
         function openCalendarModal() {
+            // Populate day dropdown (1-31)
+            const daySelect = document.getElementById('day-select');
+            if (daySelect.options.length === 0) {
+                for (let i = 1; i <= 31; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    daySelect.appendChild(option);
+                }
+            }
+
+            // Sync with current date
             const modalInput = document.getElementById('modal-date-input');
             const desktopInput = document.getElementById('date-input');
             modalInput.value = desktopInput.value;
+
+            // Parse current date and set dropdowns
+            if (desktopInput.value) {
+                const parts = desktopInput.value.split('-');
+                if (parts.length === 3) {
+                    document.getElementById('month-select').value = parseInt(parts[1], 10);
+                    document.getElementById('day-select').value = parseInt(parts[2], 10);
+                }
+            }
+
             document.getElementById('calendar-modal').classList.add('visible');
         }
 
@@ -1552,7 +1669,21 @@ Sep Oct Nov Dec 28 29 30 14`;
         function setDateFromModal() {
             const modalInput = document.getElementById('modal-date-input');
             const desktopInput = document.getElementById('date-input');
-            desktopInput.value = modalInput.value;
+            const monthSelect = document.getElementById('month-select');
+            const daySelect = document.getElementById('day-select');
+
+            // Check if user entered a date in the date input
+            if (modalInput.value) {
+                desktopInput.value = modalInput.value;
+            } else {
+                // Use dropdown values
+                const year = new Date().getFullYear();
+                const month = String(monthSelect.value).padStart(2, '0');
+                const day = String(daySelect.value).padStart(2, '0');
+                desktopInput.value = `${year}-${month}-${day}`;
+                modalInput.value = `${year}-${month}-${day}`;
+            }
+
             setDate();
         }
 
@@ -1711,9 +1842,11 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             const grid = document.createElement('div');
             grid.className = 'piece-grid';
-            grid.style.gridTemplateColumns = `repeat(${maxCol + 1}, 20px)`;
 
             for (let row = 0; row <= maxRow; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'piece-grid-row';
+
                 for (let col = 0; col <= maxCol; col++) {
                     const cell = document.createElement('div');
                     cell.className = 'piece-cell';
@@ -1721,8 +1854,10 @@ Sep Oct Nov Dec 28 29 30 14`;
                         cell.classList.add('filled');
                         cell.style.backgroundColor = color;
                     }
-                    grid.appendChild(cell);
+                    rowDiv.appendChild(cell);
                 }
+
+                grid.appendChild(rowDiv);
             }
 
             return grid;
@@ -2171,7 +2306,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             dragStartTime = Date.now();
             dragSourceType = source;
             dragPieceIndex = index;
-            dragStartPosition = { x: e.clientX || e.pageX, y: e.clientY || e.pageY };
+            const x = e.clientX || e.pageX;
+            const y = e.clientY || e.pageY;
+            dragStartPosition = { x, y };
 
             // Start timer for hold detection
             dragTimer = setTimeout(() => {
@@ -2182,6 +2319,12 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleBoardMouseDown(e, row, col) {
+            // Prevent duplicate events during active drag
+            if (isProcessingDrag || isDragging) {
+                console.log('Ignoring duplicate board mousedown during drag');
+                return;
+            }
+
             // Find which piece this cell belongs to
             const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
             if (!clickedCell) return;
@@ -2189,12 +2332,17 @@ Sep Oct Nov Dec 28 29 30 14`;
             const pieceName = clickedCell.pieceName;
             const pieceIndex = clickedCell.pieceIndex;
 
+            console.log('handleBoardMouseDown', pieceIndex, row, col);
             dragStartTime = Date.now();
             dragSourceType = 'board';
             dragPieceIndex = pieceIndex;
+            const x = e.clientX || e.pageX;
+            const y = e.clientY || e.pageY;
+            dragStartPosition = { x, y };
 
             // Start drag for pieces on board after hold threshold
             dragTimer = setTimeout(() => {
+                console.log('Board hold detected, starting grab and drag');
                 grabAndStartDrag(e, row, col, pieceName, pieceIndex);
             }, dragThreshold);
         }
@@ -2264,6 +2412,19 @@ Sep Oct Nov Dec 28 29 30 14`;
             console.log('Grab and drag started successfully');
         }
 
+        function calculateSmartOffset(coords) {
+            // Calculate offset from the BOTTOM of the piece
+            // This ensures the piece appears above the finger, not blocked by it
+            const maxRow = Math.max(...coords.map(c => c.row));
+
+            // Each cell is approximately 20px when scaled, piece is scaled 1.5x = 30px per cell
+            // Offset from bottom of piece + some padding (20px)
+            const cellHeight = 30; // 20px * 1.5 scale
+            const offsetY = (maxRow + 1) * cellHeight + 20;
+
+            return offsetY;
+        }
+
         function createDragElement(coords, color, x, y) {
             // Remove any existing drag element
             if (dragPieceElement) {
@@ -2273,9 +2434,10 @@ Sep Oct Nov Dec 28 29 30 14`;
             const grid = createPieceGrid(coords, color);
             grid.classList.add('drag-piece');
 
-            // Only offset upward when dragging from sidebar (not when moving pieces already on board)
-            // This prevents confusing behavior when repositioning pieces
-            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
+            // Calculate smart offset from bottom of piece
+            // This works for both sidebar and board pieces
+            const offsetY = calculateSmartOffset(coords);
+
             grid.style.left = x + 'px';
             grid.style.top = (y - offsetY) + 'px';
             grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
@@ -2292,8 +2454,8 @@ Sep Oct Nov Dec 28 29 30 14`;
             const x = e.clientX || (e.touches && e.touches[0].clientX);
             const y = e.clientY || (e.touches && e.touches[0].clientY);
 
-            // Only offset upward when dragging from sidebar (not when moving pieces already on board)
-            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
+            // Calculate smart offset based on piece geometry
+            const offsetY = calculateSmartOffset(selectedPieceCoords);
             dragPieceElement.style.left = x + 'px';
             dragPieceElement.style.top = (y - offsetY) + 'px';
 
@@ -2303,14 +2465,19 @@ Sep Oct Nov Dec 28 29 30 14`;
 
         function handleMouseUp(e) {
             console.log('handleMouseUp called, isDragging:', isDragging);
+
             // Clear drag timer
             if (dragTimer) {
                 clearTimeout(dragTimer);
                 dragTimer = null;
             }
 
-            const holdDuration = Date.now() - dragStartTime;
-            console.log('holdDuration:', holdDuration, 'ms');
+            // Calculate hold duration if we have a valid start time
+            let holdDuration = 0;
+            if (dragStartTime > 0) {
+                holdDuration = Date.now() - dragStartTime;
+                console.log('holdDuration:', holdDuration, 'ms');
+            }
 
             if (isDragging) {
                 // Was dragging - try to drop
@@ -2318,7 +2485,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                 handleDrop(e);
                 // Clear any preview highlighting
                 clearDragPreview();
-            } else if (holdDuration < dragThreshold && dragPieceIndex !== null) {
+            } else if (holdDuration > 0 && holdDuration < dragThreshold && dragPieceIndex !== null) {
                 // Was a quick click
                 console.log('Quick click detected for rotation');
                 if (dragSourceType === 'sidebar') {
@@ -2336,19 +2503,20 @@ Sep Oct Nov Dec 28 29 30 14`;
                 dragPieceElement = null;
             }
 
+            // Reset all drag state
             isDragging = false;
             isProcessingDrag = false;
             dragStartTime = 0;
             dragSourceType = null;
             dragPieceIndex = null;
+            dragStartPosition = null;
 
             renderPieces();
         }
 
         function updateDragPreview(x, y) {
             // Use the same offset as the drag visual so preview appears at the same location
-            // Only offset when dragging from sidebar
-            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
+            const offsetY = calculateSmartOffset(selectedPieceCoords);
             const previewX = x;
             const previewY = y - offsetY;
 
@@ -2384,10 +2552,23 @@ Sep Oct Nov Dec 28 29 30 14`;
             const row = parseInt(cell.dataset.row);
             const col = parseInt(cell.dataset.col);
 
-            // Calculate where piece would be placed
+            // For board pieces, anchor preview to bottom-left of piece
+            // Find the bottom-left cell of the piece in its current orientation
+            const minCol = Math.min(...selectedPieceCoords.map(c => c.col));
+            const maxRow = Math.max(...selectedPieceCoords.map(c => c.row));
+
+            // Find which piece coord is at the bottom-left
+            const bottomLeftCoord = selectedPieceCoords.find(c => c.col === minCol && c.row === maxRow) ||
+                                    selectedPieceCoords.find(c => c.row === maxRow) ||
+                                    selectedPieceCoords[0];
+
+            // Calculate where piece would be placed, anchored to bottom-left
+            const anchorRow = row - bottomLeftCoord.row;
+            const anchorCol = col - bottomLeftCoord.col;
+
             const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
+                row: anchorRow + c.row,
+                col: anchorCol + c.col
             }));
 
             // Check if valid
@@ -2429,8 +2610,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
 
             // Use the same offset as the drag visual and preview
-            // Only offset when dragging from sidebar
-            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
+            const offsetY = calculateSmartOffset(selectedPieceCoords);
             const dropX = x;
             const dropY = y - offsetY;
 
@@ -2478,9 +2658,22 @@ Sep Oct Nov Dec 28 29 30 14`;
         function tryPlacePiece(row, col) {
             if (selectedPieceIndex === null) return;
 
+            // Anchor to bottom-left of piece (same as preview)
+            const minCol = Math.min(...selectedPieceCoords.map(c => c.col));
+            const maxRow = Math.max(...selectedPieceCoords.map(c => c.row));
+
+            // Find which piece coord is at the bottom-left
+            const bottomLeftCoord = selectedPieceCoords.find(c => c.col === minCol && c.row === maxRow) ||
+                                    selectedPieceCoords.find(c => c.row === maxRow) ||
+                                    selectedPieceCoords[0];
+
+            // Calculate where piece would be placed, anchored to bottom-left
+            const anchorRow = row - bottomLeftCoord.row;
+            const anchorCol = col - bottomLeftCoord.col;
+
             const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
+                row: anchorRow + c.row,
+                col: anchorCol + c.col
             }));
 
             // Validate placement locally

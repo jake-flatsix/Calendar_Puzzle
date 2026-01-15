@@ -125,7 +125,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
@@ -207,8 +207,8 @@
 
         .piece-grid {
             display: inline-grid;
-            gap: 1px;
-            background: #ddd;
+            gap: 0px;
+            background: transparent;
         }
 
         .piece-cell {
@@ -243,6 +243,148 @@
 
         .instructions li {
             margin-bottom: 5px;
+        }
+
+        /* Mobile Icon Controls */
+        .mobile-icon-controls {
+            display: none;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        .mobile-status {
+            display: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .mobile-status.solved {
+            color: #22c55e;
+        }
+
+        .icon-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .icon-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-button.reset {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .icon-button.solve {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .modal-button.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-button.primary:active {
+            background: #5568d3;
+        }
+
+        .modal-button.success {
+            background: #10b981;
+            color: white;
+        }
+
+        .modal-button.success:active {
+            background: #059669;
+        }
+
+        .modal-button.warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .modal-button.warning:active {
+            background: #d97706;
+        }
+
+        .modal-date-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
         }
 
         .reset-button {
@@ -450,13 +592,20 @@
 
             h1 {
                 font-size: 24px;
-                margin-bottom: 15px;
+                margin-bottom: 10px;
             }
 
+            /* Hide full controls, show icon controls on mobile */
             .controls {
-                flex-direction: column;
-                gap: 15px;
-                padding: 12px;
+                display: none;
+            }
+
+            .mobile-icon-controls {
+                display: flex;
+            }
+
+            .mobile-status {
+                display: block;
             }
 
             .date-selector {
@@ -524,15 +673,15 @@
             }
 
             .board {
-                padding: 3px;
+                padding: 4px;
                 gap: 1px;
                 background: #555;
             }
 
             .cell {
-                width: 28px;
-                height: 28px;
-                font-size: 7px;
+                width: 32px;
+                height: 32px;
+                font-size: 8px;
                 border: none;
             }
 
@@ -557,8 +706,8 @@
             }
 
             .piece-grid {
-                gap: 1px;
-                background: #ddd;
+                gap: 0px;
+                background: transparent;
             }
 
             .piece-cell {
@@ -607,14 +756,14 @@
             }
 
             .board {
-                padding: 2px;
-                gap: 0.5px;
+                padding: 3px;
+                gap: 1px;
             }
 
             .cell {
-                width: 24px;
-                height: 24px;
-                font-size: 6px;
+                width: 30px;
+                height: 30px;
+                font-size: 7px;
             }
 
             .pieces-list {
@@ -622,7 +771,8 @@
             }
 
             .piece-grid {
-                gap: 0.5px;
+                gap: 0px;
+                background: transparent;
             }
 
             .piece-cell {
@@ -652,14 +802,19 @@
             }
 
             .board {
-                padding: 1px;
-                gap: 0.5px;
+                padding: 2px;
+                gap: 1px;
             }
 
             .cell {
-                width: 22px;
-                height: 22px;
-                font-size: 6px;
+                width: 28px;
+                height: 28px;
+                font-size: 7px;
+            }
+
+            .piece-grid {
+                gap: 0px;
+                background: transparent;
             }
 
             .piece-cell {
@@ -684,6 +839,15 @@
     <div class="container">
         <h1>📅 Calendar Puzzle Player</h1>
 
+        <!-- Mobile Icon Controls (only visible on mobile) -->
+        <div class="mobile-icon-controls">
+            <button class="icon-button calendar" id="mobile-calendar-btn" title="Set Date">📅</button>
+            <button class="icon-button solve" id="mobile-solve-btn" title="Get Help">💡</button>
+            <button class="icon-button reset" id="mobile-reset-btn" title="Reset">🔄</button>
+        </div>
+        <div class="mobile-status" id="mobile-status">Select a date to start</div>
+
+        <!-- Desktop Controls (hidden on mobile) -->
         <div class="controls">
             <div class="date-selector">
                 <label for="date-input">Target Date:</label>
@@ -726,6 +890,29 @@
                         <li>Use Hint or Solve buttons for help!</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div class="modal-overlay" id="calendar-modal">
+        <div class="modal-content">
+            <div class="modal-header">📅 Select Date</div>
+            <input type="date" id="modal-date-input" class="modal-date-input">
+            <div class="modal-buttons">
+                <button class="modal-button primary" id="modal-set-date">Set Date</button>
+                <button class="modal-button primary" id="modal-today">Today</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solve Modal -->
+    <div class="modal-overlay" id="solve-modal">
+        <div class="modal-content">
+            <div class="modal-header">💡 Get Help</div>
+            <div class="modal-buttons">
+                <button class="modal-button warning" id="modal-hint">Hint (Next Piece)</button>
+                <button class="modal-button success" id="modal-solve">Solve Puzzle</button>
             </div>
         </div>
     </div>
@@ -1263,7 +1450,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Set up button event listeners (works for both mouse and touch)
             setupButtonListeners();
 
-            // Set today's date as default (with small delay to ensure DOM is ready)
+            // Set today's date as default and pre-populate the board
             setTimeout(() => {
                 const today = new Date();
                 const year = today.getFullYear();
@@ -1271,8 +1458,10 @@ Sep Oct Nov Dec 28 29 30 14`;
                 const day = String(today.getDate()).padStart(2, '0');
                 const dateInput = document.getElementById('date-input');
                 dateInput.value = `${year}-${month}-${day}`;
-                // Force the input to recognize the new value
-                dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+                const modalInput = document.getElementById('modal-date-input');
+                modalInput.value = `${year}-${month}-${day}`;
+                // Automatically set the date to pre-populate the board
+                setDate();
             }, 0);
         }
 
@@ -1288,17 +1477,83 @@ Sep Oct Nov Dec 28 29 30 14`;
                 });
             }
 
-            // Date selector buttons
+            // Desktop date selector buttons
             const setDateBtn = document.querySelector('.date-selector button:nth-of-type(1)');
             const todayBtn = document.querySelector('.date-selector button:nth-of-type(2)');
 
             addClickListener(setDateBtn, setDate);
             addClickListener(todayBtn, setToday);
 
-            // Action buttons
+            // Desktop action buttons
             addClickListener(document.getElementById('hint-btn'), getHint);
             addClickListener(document.getElementById('solve-btn'), solvePuzzle);
             addClickListener(document.querySelector('.reset-button'), resetGame);
+
+            // Mobile icon buttons
+            addClickListener(document.getElementById('mobile-calendar-btn'), openCalendarModal);
+            addClickListener(document.getElementById('mobile-solve-btn'), openSolveModal);
+            addClickListener(document.getElementById('mobile-reset-btn'), resetGame);
+
+            // Modal buttons
+            addClickListener(document.getElementById('modal-set-date'), () => {
+                setDateFromModal();
+                closeCalendarModal();
+            });
+            addClickListener(document.getElementById('modal-today'), () => {
+                setToday();
+                closeCalendarModal();
+            });
+            addClickListener(document.getElementById('modal-hint'), () => {
+                getHint();
+                closeSolveModal();
+            });
+            addClickListener(document.getElementById('modal-solve'), () => {
+                solvePuzzle();
+                closeSolveModal();
+            });
+
+            // Close modals when clicking overlay
+            document.getElementById('calendar-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'calendar-modal') {
+                    closeCalendarModal();
+                }
+            });
+            document.getElementById('solve-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'solve-modal') {
+                    closeSolveModal();
+                }
+            });
+        }
+
+        // Modal functions
+        function openCalendarModal() {
+            const modalInput = document.getElementById('modal-date-input');
+            const desktopInput = document.getElementById('date-input');
+            modalInput.value = desktopInput.value;
+            document.getElementById('calendar-modal').classList.add('visible');
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('calendar-modal').classList.remove('visible');
+        }
+
+        function openSolveModal() {
+            if (!targetCoords.length) {
+                alert('Please select a date first');
+                return;
+            }
+            document.getElementById('solve-modal').classList.add('visible');
+        }
+
+        function closeSolveModal() {
+            document.getElementById('solve-modal').classList.remove('visible');
+        }
+
+        function setDateFromModal() {
+            const modalInput = document.getElementById('modal-date-input');
+            const desktopInput = document.getElementById('date-input');
+            desktopInput.value = modalInput.value;
+            setDate();
         }
 
         function loadBoard() {
@@ -1660,8 +1915,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Get target coordinates from board
                 targetCoords = getTargetCoordsFromBoard(boardData, parsed.month, parsed.day, parsed.weekday);
 
-                document.getElementById('status').textContent =
-                    `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
+                const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
+                document.getElementById('status').textContent = statusText;
+                document.getElementById('mobile-status').textContent = statusText;
 
                 // Enable solve and hint buttons
                 document.getElementById('solve-btn').disabled = false;
@@ -1700,9 +1956,13 @@ Sep Oct Nov Dec 28 29 30 14`;
             const isSolved = occupiedSet.size === requiredCount;
 
             if (isSolved) {
+                const statusText = '🎉 Puzzle Solved! Congratulations! 🎉';
                 const statusEl = document.getElementById('status');
-                statusEl.textContent = '🎉 Puzzle Solved! Congratulations! 🎉';
+                const mobileStatusEl = document.getElementById('mobile-status');
+                statusEl.textContent = statusText;
+                mobileStatusEl.textContent = statusText;
                 statusEl.classList.add('solved');
+                mobileStatusEl.classList.add('solved');
             }
         }
 
@@ -1723,12 +1983,15 @@ Sep Oct Nov Dec 28 29 30 14`;
             if (clearDate) {
                 targetCoords = [];
                 solution = null;
-                document.getElementById('status').textContent = 'Select a date to start';
+                const statusText = 'Select a date to start';
+                document.getElementById('status').textContent = statusText;
+                document.getElementById('mobile-status').textContent = statusText;
                 document.getElementById('solve-btn').disabled = true;
                 document.getElementById('hint-btn').disabled = true;
             }
 
             document.getElementById('status').classList.remove('solved');
+            document.getElementById('mobile-status').classList.remove('solved');
             renderBoard();
             renderPieces();
         }
@@ -2010,8 +2273,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             const grid = createPieceGrid(coords, color);
             grid.classList.add('drag-piece');
 
-            // Offset upward on touch devices so finger doesn't block view
-            const offsetY = 80; // pixels above the touch point
+            // Only offset upward when dragging from sidebar (not when moving pieces already on board)
+            // This prevents confusing behavior when repositioning pieces
+            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
             grid.style.left = x + 'px';
             grid.style.top = (y - offsetY) + 'px';
             grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
@@ -2028,12 +2292,12 @@ Sep Oct Nov Dec 28 29 30 14`;
             const x = e.clientX || (e.touches && e.touches[0].clientX);
             const y = e.clientY || (e.touches && e.touches[0].clientY);
 
-            // Offset upward on touch devices so finger doesn't block view
-            const offsetY = 80; // pixels above the touch point
+            // Only offset upward when dragging from sidebar (not when moving pieces already on board)
+            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
             dragPieceElement.style.left = x + 'px';
             dragPieceElement.style.top = (y - offsetY) + 'px';
 
-            // Update preview of where piece will be placed (use actual touch position)
+            // Update preview of where piece will be placed
             updateDragPreview(x, y);
         }
 
@@ -2083,7 +2347,8 @@ Sep Oct Nov Dec 28 29 30 14`;
 
         function updateDragPreview(x, y) {
             // Use the same offset as the drag visual so preview appears at the same location
-            const offsetY = 80;
+            // Only offset when dragging from sidebar
+            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
             const previewX = x;
             const previewY = y - offsetY;
 
@@ -2164,7 +2429,8 @@ Sep Oct Nov Dec 28 29 30 14`;
             const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
 
             // Use the same offset as the drag visual and preview
-            const offsetY = 80;
+            // Only offset when dragging from sidebar
+            const offsetY = dragSourceType === 'sidebar' ? 80 : 0;
             const dropX = x;
             const dropY = y - offsetY;
 

@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Calendar Puzzle Player</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -16,6 +19,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             min-height: 100vh;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: pan-y;
         }
 
         .container {
@@ -58,6 +64,8 @@
             border: 2px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         .date-selector button {
@@ -220,6 +228,8 @@
             border-radius: 10px;
             color: #3730a3;
             font-size: 14px;
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         .instructions h3 {
@@ -347,6 +357,183 @@
         .piece-item.dragging {
             opacity: 0.3;
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+                padding: 12px;
+            }
+
+            .date-selector {
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .date-selector label {
+                width: 100%;
+                text-align: center;
+                font-size: 14px;
+            }
+
+            .date-selector input {
+                flex: 1;
+                min-width: 140px;
+            }
+
+            .date-selector button {
+                padding: 10px 20px;
+                font-size: 14px;
+                min-height: 44px; /* iOS recommended touch target */
+            }
+
+            .status {
+                font-size: 16px;
+                text-align: center;
+                width: 100%;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .action-buttons button {
+                flex: 1;
+                min-height: 44px;
+                font-size: 14px;
+            }
+
+            .reset-button,
+            .solve-button,
+            .hint-button {
+                min-height: 44px;
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .board-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .board-title {
+                font-size: 16px;
+                text-align: center;
+            }
+
+            .board {
+                padding: 5px;
+            }
+
+            .cell {
+                width: 35px;
+                height: 35px;
+                font-size: 9px;
+            }
+
+            .pieces-container {
+                width: 100%;
+            }
+
+            .pieces-title {
+                font-size: 16px;
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .pieces-list {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                max-height: none;
+            }
+
+            .piece-item {
+                padding: 8px;
+            }
+
+            .piece-grid {
+                gap: 1px;
+            }
+
+            .piece-cell {
+                width: 16px;
+                height: 16px;
+            }
+
+            .instructions {
+                font-size: 12px;
+                padding: 12px;
+                margin-top: 15px;
+            }
+
+            .instructions h3 {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .instructions li {
+                margin-bottom: 4px;
+            }
+
+            .loading-indicator {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+        }
+
+        /* Extra small devices (phones in portrait, less than 400px) */
+        @media (max-width: 400px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .cell {
+                width: 30px;
+                height: 30px;
+                font-size: 8px;
+            }
+
+            .pieces-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .piece-cell {
+                width: 14px;
+                height: 14px;
+            }
+
+            .date-selector button {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -389,7 +576,8 @@
                         <li><strong>Click</strong> a piece in the sidebar to rotate it</li>
                         <li><strong>Click and hold</strong> to drag a piece onto the board</li>
                         <li><strong>Release</strong> to drop the piece</li>
-                        <li><strong>Click and drag</strong> a placed piece to move it</li>
+                        <li><strong>Click</strong> a placed piece to rotate it in place</li>
+                        <li><strong>Click and hold</strong> a placed piece to move it</li>
                         <li><strong>Drag off the board</strong> to remove a piece</li>
                         <li>Use Hint or Solve buttons for help!</li>
                     </ul>
@@ -1002,6 +1190,98 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderPieces();
         }
 
+        function rotatePieceOnBoard(pieceIndex) {
+            // Find all cells belonging to this piece
+            const pieceName = piecesData[pieceIndex].name;
+            const pieceCells = occupiedCoords.filter(o => o.pieceName === pieceName);
+
+            if (pieceCells.length === 0) return;
+
+            // Get current position (anchor point = top-left of bounding box)
+            const minRow = Math.min(...pieceCells.map(c => c.row));
+            const minCol = Math.min(...pieceCells.map(c => c.col));
+            const anchorRow = minRow;
+            const anchorCol = minCol;
+
+            // Get current orientation index
+            const currentOrientIdx = pieceCells[0].orientationIndex || 0;
+
+            // Get all orientations
+            const orientations = generateAllOrientations(piecesData[pieceIndex].coords);
+
+            // Try each subsequent orientation until we find one that fits
+            let foundFit = false;
+            let triesLeft = orientations.length;
+            let nextOrientIdx = (currentOrientIdx + 1) % orientations.length;
+
+            while (triesLeft > 0 && !foundFit) {
+                const candidateCoords = orientations[nextOrientIdx];
+
+                // Calculate absolute coords with same anchor point
+                const absoluteCoords = candidateCoords.map(c => ({
+                    row: anchorRow + c.row,
+                    col: anchorCol + c.col
+                }));
+
+                // Check if this orientation fits (excluding current piece's cells)
+                const wouldFit = checkValidPlacementExcludingPiece(absoluteCoords, pieceName);
+
+                if (wouldFit) {
+                    // Remove old piece cells
+                    occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
+
+                    // Add new piece cells with new orientation
+                    const pieceColor = pieceColors[pieceIndex];
+                    absoluteCoords.forEach(coord => {
+                        occupiedCoords.push({
+                            ...coord,
+                            color: pieceColor,
+                            pieceName: pieceName,
+                            pieceIndex: pieceIndex,
+                            orientationIndex: nextOrientIdx
+                        });
+                    });
+
+                    foundFit = true;
+                    renderBoard();
+                    renderPieces();
+                    break;
+                }
+
+                // Try next orientation
+                nextOrientIdx = (nextOrientIdx + 1) % orientations.length;
+                triesLeft--;
+            }
+
+            // If no orientation fits, piece stays in current orientation (do nothing)
+        }
+
+        function checkValidPlacementExcludingPiece(absoluteCoords, excludePieceName) {
+            for (const coord of absoluteCoords) {
+                // Check if on board
+                const coordKey = `${coord.row},${coord.col}`;
+                if (!boardData.grid.hasOwnProperty(coordKey)) {
+                    return false;
+                }
+
+                // Check if occupied by a different piece
+                const occupiedByOther = occupiedCoords.find(o =>
+                    o.row === coord.row &&
+                    o.col === coord.col &&
+                    o.pieceName !== excludePieceName
+                );
+                if (occupiedByOther) {
+                    return false;
+                }
+
+                // Check if covering target
+                if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function generateAllOrientations(coords) {
             const orientations = [];
             const seen = new Set();
@@ -1438,9 +1718,15 @@ Sep Oct Nov Dec 28 29 30 14`;
                 handleDrop(e);
                 // Clear any preview highlighting
                 clearDragPreview();
-            } else if (holdDuration < dragThreshold && dragPieceIndex !== null && dragSourceType === 'sidebar') {
-                // Was a quick click on sidebar - rotate piece
-                rotatePieceInPlace(dragPieceIndex);
+            } else if (holdDuration < dragThreshold && dragPieceIndex !== null) {
+                // Was a quick click
+                if (dragSourceType === 'sidebar') {
+                    // Rotate piece in sidebar
+                    rotatePieceInPlace(dragPieceIndex);
+                } else if (dragSourceType === 'board') {
+                    // Rotate piece on board
+                    rotatePieceOnBoard(dragPieceIndex);
+                }
             }
 
             // Clean up

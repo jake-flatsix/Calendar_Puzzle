@@ -111,9 +111,9 @@
 
         .board {
             display: inline-grid;
-            gap: 0px;
+            gap: 1px;
             padding: 10px;
-            background: #333;
+            background: #555;
             border-radius: 10px;
         }
 
@@ -121,7 +121,7 @@
             width: 50px;
             height: 50px;
             background: #fff;
-            border: 0.5px solid #ccc;
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -207,19 +207,19 @@
 
         .piece-grid {
             display: inline-grid;
-            gap: 0px;
-            background: transparent;
+            gap: 1px;
+            background: #ddd;
         }
 
         .piece-cell {
             width: 20px;
             height: 20px;
             background: transparent;
-            border: 0.5px solid #ddd;
+            border: none;
         }
 
         .piece-cell.filled {
-            border: 0.5px solid rgba(0,0,0,0.2);
+            border: none;
         }
 
         .instructions {
@@ -524,15 +524,16 @@
             }
 
             .board {
-                padding: 5px;
-                gap: 0px;
+                padding: 3px;
+                gap: 1px;
+                background: #555;
             }
 
             .cell {
-                width: 32px;
-                height: 32px;
-                font-size: 8px;
-                border: 0.5px solid #ccc;
+                width: 28px;
+                height: 28px;
+                font-size: 7px;
+                border: none;
             }
 
             .pieces-container {
@@ -556,12 +557,18 @@
             }
 
             .piece-grid {
-                gap: 0px;
+                gap: 1px;
+                background: #ddd;
             }
 
             .piece-cell {
-                width: 15px;
-                height: 15px;
+                width: 14px;
+                height: 14px;
+                border: none;
+            }
+
+            .piece-cell.filled {
+                border: none;
             }
 
             .instructions {
@@ -599,23 +606,28 @@
                 font-size: 18px;
             }
 
-            .cell {
-                width: 28px;
-                height: 28px;
-                font-size: 7px;
+            .board {
+                padding: 2px;
+                gap: 1px;
             }
 
-            .board {
-                padding: 3px;
+            .cell {
+                width: 26px;
+                height: 26px;
+                font-size: 7px;
             }
 
             .pieces-list {
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            .piece-grid {
+                gap: 1px;
+            }
+
             .piece-cell {
-                width: 13px;
-                height: 13px;
+                width: 12px;
+                height: 12px;
             }
 
             .date-selector button {
@@ -1956,8 +1968,11 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             const grid = createPieceGrid(coords, color);
             grid.classList.add('drag-piece');
+
+            // Offset upward on touch devices so finger doesn't block view
+            const offsetY = 80; // pixels above the touch point
             grid.style.left = x + 'px';
-            grid.style.top = y + 'px';
+            grid.style.top = (y - offsetY) + 'px';
             grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
 
             document.body.appendChild(grid);
@@ -1972,10 +1987,12 @@ Sep Oct Nov Dec 28 29 30 14`;
             const x = e.clientX || (e.touches && e.touches[0].clientX);
             const y = e.clientY || (e.touches && e.touches[0].clientY);
 
+            // Offset upward on touch devices so finger doesn't block view
+            const offsetY = 80; // pixels above the touch point
             dragPieceElement.style.left = x + 'px';
-            dragPieceElement.style.top = y + 'px';
+            dragPieceElement.style.top = (y - offsetY) + 'px';
 
-            // Update preview of where piece will be placed
+            // Update preview of where piece will be placed (use actual touch position)
             updateDragPreview(x, y);
         }
 

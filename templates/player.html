@@ -359,6 +359,48 @@
             opacity: 0.3;
         }
 
+        /* Debug Console */
+        #debug-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10000;
+            display: none;
+        }
+
+        #debug-console.visible {
+            display: block;
+        }
+
+        #debug-console .log-entry {
+            margin: 2px 0;
+            word-wrap: break-word;
+        }
+
+        #debug-toggle {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            z-index: 10001;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             body {
@@ -548,6 +590,10 @@
     </style>
 </head>
 <body>
+    <!-- Debug Console -->
+    <button id="debug-toggle">🐛</button>
+    <div id="debug-console"></div>
+
     <div class="container">
         <h1>📅 Calendar Puzzle Player</h1>
 
@@ -598,6 +644,46 @@
     </div>
 
     <script>
+        // ===== DEBUG CONSOLE =====
+        (function() {
+            const debugConsole = document.getElementById('debug-console');
+            const debugToggle = document.getElementById('debug-toggle');
+            let logCount = 0;
+            const maxLogs = 50;
+
+            // Override console.log to show in our debug panel
+            const originalLog = console.log;
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.textContent = `[${logCount++}] ${args.map(a =>
+                    typeof a === 'object' ? JSON.stringify(a) : String(a)
+                ).join(' ')}`;
+
+                debugConsole.appendChild(logEntry);
+
+                // Keep only last 50 logs
+                while (debugConsole.children.length > maxLogs) {
+                    debugConsole.removeChild(debugConsole.firstChild);
+                }
+
+                // Auto scroll to bottom
+                debugConsole.scrollTop = debugConsole.scrollHeight;
+            };
+
+            // Toggle debug console visibility
+            debugToggle.addEventListener('click', () => {
+                debugConsole.classList.toggle('visible');
+            });
+
+            debugToggle.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                debugConsole.classList.toggle('visible');
+            });
+        })();
+
         // ===== EMBEDDED DATA =====
         // Board configuration (from board.txt)
         const BOARD_RAW_DATA = `Jan Feb Mar Apr 1 2 3 Mon Tue

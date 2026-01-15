@@ -369,7 +369,7 @@
             color: #0f0;
             font-family: monospace;
             font-size: 10px;
-            padding: 10px;
+            padding: 40px 10px 10px 10px;
             max-height: 150px;
             overflow-y: auto;
             z-index: 10000;
@@ -383,6 +383,42 @@
         #debug-console .log-entry {
             margin: 2px 0;
             word-wrap: break-word;
+        }
+
+        #debug-header {
+            position: fixed;
+            bottom: 150px;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 5px 10px;
+            z-index: 10001;
+            display: none;
+            border-top: 1px solid #0f0;
+        }
+
+        #debug-header.visible {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #debug-header button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #debug-header .title {
+            color: #0f0;
+            font-family: monospace;
+            font-size: 11px;
         }
 
         #debug-toggle {
@@ -592,6 +628,13 @@
 <body>
     <!-- Debug Console -->
     <button id="debug-toggle">🐛</button>
+    <div id="debug-header">
+        <span class="title">Debug Console</span>
+        <div>
+            <button id="debug-copy">Copy Logs</button>
+            <button id="debug-clear">Clear</button>
+        </div>
+    </div>
     <div id="debug-console"></div>
 
     <div class="container">
@@ -647,24 +690,32 @@
         // ===== DEBUG CONSOLE =====
         (function() {
             const debugConsole = document.getElementById('debug-console');
+            const debugHeader = document.getElementById('debug-header');
             const debugToggle = document.getElementById('debug-toggle');
+            const debugCopy = document.getElementById('debug-copy');
+            const debugClear = document.getElementById('debug-clear');
             let logCount = 0;
             const maxLogs = 50;
+            let allLogs = [];
 
             // Override console.log to show in our debug panel
             const originalLog = console.log;
             console.log = function(...args) {
                 originalLog.apply(console, args);
 
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry';
-                logEntry.textContent = `[${logCount++}] ${args.map(a =>
+                const logText = `[${logCount++}] ${args.map(a =>
                     typeof a === 'object' ? JSON.stringify(a) : String(a)
                 ).join(' ')}`;
 
+                allLogs.push(logText);
+
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.textContent = logText;
+
                 debugConsole.appendChild(logEntry);
 
-                // Keep only last 50 logs
+                // Keep only last 50 logs in display
                 while (debugConsole.children.length > maxLogs) {
                     debugConsole.removeChild(debugConsole.firstChild);
                 }
@@ -674,13 +725,60 @@
             };
 
             // Toggle debug console visibility
-            debugToggle.addEventListener('click', () => {
+            function toggleConsole() {
                 debugConsole.classList.toggle('visible');
-            });
+                debugHeader.classList.toggle('visible');
+            }
 
+            debugToggle.addEventListener('click', toggleConsole);
             debugToggle.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                debugConsole.classList.toggle('visible');
+                toggleConsole();
+            });
+
+            // Copy logs to clipboard
+            async function copyLogs() {
+                const logsText = allLogs.join('\n');
+                try {
+                    await navigator.clipboard.writeText(logsText);
+                    debugCopy.textContent = 'Copied!';
+                    setTimeout(() => {
+                        debugCopy.textContent = 'Copy Logs';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = logsText;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    debugCopy.textContent = 'Copied!';
+                    setTimeout(() => {
+                        debugCopy.textContent = 'Copy Logs';
+                    }, 2000);
+                }
+            }
+
+            debugCopy.addEventListener('click', copyLogs);
+            debugCopy.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                copyLogs();
+            });
+
+            // Clear logs
+            function clearLogs() {
+                debugConsole.innerHTML = '';
+                allLogs = [];
+                logCount = 0;
+            }
+
+            debugClear.addEventListener('click', clearLogs);
+            debugClear.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                clearLogs();
             });
         })();
 

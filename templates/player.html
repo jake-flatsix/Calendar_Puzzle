@@ -111,7 +111,7 @@
 
         .board {
             display: inline-grid;
-            gap: 1px;
+            gap: 0px;
             padding: 10px;
             background: #333;
             border-radius: 10px;
@@ -121,7 +121,7 @@
             width: 50px;
             height: 50px;
             background: #fff;
-            border: 1px solid #ddd;
+            border: 0.5px solid #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -215,10 +215,11 @@
             width: 20px;
             height: 20px;
             background: transparent;
+            border: 0.5px solid #ddd;
         }
 
         .piece-cell.filled {
-            border-radius: 2px;
+            border: 0.5px solid rgba(0,0,0,0.2);
         }
 
         .instructions {
@@ -446,13 +447,14 @@
 
             .board {
                 padding: 5px;
-                gap: 1px;
+                gap: 0px;
             }
 
             .cell {
                 width: 32px;
                 height: 32px;
                 font-size: 8px;
+                border: 0.5px solid #ccc;
             }
 
             .pieces-container {
@@ -997,11 +999,12 @@ Sep Oct Nov Dec 28 29 30 14`;
         // Drag state
         let isDragging = false;
         let dragStartTime = 0;
-        let dragThreshold = 200; // ms to distinguish click from hold
+        let dragThreshold = 150; // ms to distinguish click from hold (reduced for mobile)
         let dragTimer = null;
         let dragPieceElement = null;
         let dragSourceType = null; // 'sidebar' or 'board'
         let dragPieceIndex = null; // Track which piece is being interacted with
+        let dragStartPosition = null; // Track initial touch position
 
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
@@ -1657,13 +1660,16 @@ Sep Oct Nov Dec 28 29 30 14`;
         // ===== NEW DRAG SYSTEM =====
 
         function handlePieceMouseDown(e, index, source) {
+            console.log('handlePieceMouseDown', index, source);
             dragStartTime = Date.now();
             dragSourceType = source;
             dragPieceIndex = index;
+            dragStartPosition = { x: e.clientX || e.pageX, y: e.clientY || e.pageY };
 
             // Start timer for hold detection
             dragTimer = setTimeout(() => {
                 // Hold detected - start drag
+                console.log('Hold detected, starting drag');
                 startDrag(e, index, source);
             }, dragThreshold);
         }
@@ -1687,6 +1693,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function startDrag(e, index, source) {
+            console.log('startDrag called', index, source);
             isDragging = true;
             selectedPieceIndex = index;
 
@@ -1760,6 +1767,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleMouseUp(e) {
+            console.log('handleMouseUp called, isDragging:', isDragging);
             // Clear drag timer
             if (dragTimer) {
                 clearTimeout(dragTimer);
@@ -1767,14 +1775,17 @@ Sep Oct Nov Dec 28 29 30 14`;
             }
 
             const holdDuration = Date.now() - dragStartTime;
+            console.log('holdDuration:', holdDuration, 'ms');
 
             if (isDragging) {
                 // Was dragging - try to drop
+                console.log('Dropping piece');
                 handleDrop(e);
                 // Clear any preview highlighting
                 clearDragPreview();
             } else if (holdDuration < dragThreshold && dragPieceIndex !== null) {
                 // Was a quick click
+                console.log('Quick click detected for rotation');
                 if (dragSourceType === 'sidebar') {
                     // Rotate piece in sidebar
                     rotatePieceInPlace(dragPieceIndex);

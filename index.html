@@ -111,7 +111,7 @@
 
         .board {
             display: inline-grid;
-            gap: 2px;
+            gap: 1px;
             padding: 10px;
             background: #333;
             border-radius: 10px;
@@ -207,18 +207,18 @@
 
         .piece-grid {
             display: inline-grid;
-            gap: 1px;
-            background: #999;
+            gap: 0px;
+            background: transparent;
         }
 
         .piece-cell {
             width: 20px;
             height: 20px;
-            background: #fff;
+            background: transparent;
         }
 
         .piece-cell.filled {
-            background: #8b5cf6;
+            border-radius: 2px;
         }
 
         .instructions {
@@ -446,12 +446,13 @@
 
             .board {
                 padding: 5px;
+                gap: 1px;
             }
 
             .cell {
-                width: 35px;
-                height: 35px;
-                font-size: 9px;
+                width: 32px;
+                height: 32px;
+                font-size: 8px;
             }
 
             .pieces-container {
@@ -475,12 +476,12 @@
             }
 
             .piece-grid {
-                gap: 1px;
+                gap: 0px;
             }
 
             .piece-cell {
-                width: 16px;
-                height: 16px;
+                width: 15px;
+                height: 15px;
             }
 
             .instructions {
@@ -506,18 +507,26 @@
 
         /* Extra small devices (phones in portrait, less than 400px) */
         @media (max-width: 400px) {
+            body {
+                padding: 5px;
+            }
+
             .container {
-                padding: 10px;
+                padding: 8px;
             }
 
             h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             .cell {
-                width: 30px;
-                height: 30px;
-                font-size: 8px;
+                width: 28px;
+                height: 28px;
+                font-size: 7px;
+            }
+
+            .board {
+                padding: 3px;
             }
 
             .pieces-list {
@@ -525,8 +534,8 @@
             }
 
             .piece-cell {
-                width: 14px;
-                height: 14px;
+                width: 13px;
+                height: 13px;
             }
 
             .date-selector button {
@@ -544,14 +553,14 @@
             <div class="date-selector">
                 <label for="date-input">Target Date:</label>
                 <input type="date" id="date-input">
-                <button onclick="setDate()">Set Date</button>
-                <button onclick="setToday()">Today</button>
+                <button>Set Date</button>
+                <button>Today</button>
             </div>
             <div class="status" id="status">Select a date to start</div>
             <div class="action-buttons">
-                <button class="hint-button" id="hint-btn" onclick="getHint()" disabled>Hint</button>
-                <button class="solve-button" id="solve-btn" onclick="solvePuzzle()" disabled>Solve Puzzle</button>
-                <button class="reset-button" onclick="resetGame()">Reset</button>
+                <button class="hint-button" id="hint-btn" disabled>Hint</button>
+                <button class="solve-button" id="solve-btn" disabled>Solve Puzzle</button>
+                <button class="reset-button">Reset</button>
             </div>
         </div>
 
@@ -1019,6 +1028,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderBoard();
             renderPieces();
 
+            // Set up button event listeners (works for both mouse and touch)
+            setupButtonListeners();
+
             // Set today's date as default (with small delay to ensure DOM is ready)
             setTimeout(() => {
                 const today = new Date();
@@ -1030,6 +1042,31 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Force the input to recognize the new value
                 dateInput.dispatchEvent(new Event('change', { bubbles: true }));
             }, 0);
+        }
+
+        function setupButtonListeners() {
+            // Helper to add both mouse and touch listeners
+            function addClickListener(element, handler) {
+                if (!element) return;
+
+                element.addEventListener('click', handler);
+                element.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handler();
+                });
+            }
+
+            // Date selector buttons
+            const setDateBtn = document.querySelector('.date-selector button:nth-of-type(1)');
+            const todayBtn = document.querySelector('.date-selector button:nth-of-type(2)');
+
+            addClickListener(setDateBtn, setDate);
+            addClickListener(todayBtn, setToday);
+
+            // Action buttons
+            addClickListener(document.getElementById('hint-btn'), getHint);
+            addClickListener(document.getElementById('solve-btn'), solvePuzzle);
+            addClickListener(document.querySelector('.reset-button'), resetGame);
         }
 
         function loadBoard() {
@@ -1093,9 +1130,18 @@ Sep Oct Nov Dec 28 29 30 14`;
                             cell.addEventListener('touchstart', (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                // Create a synthetic event object with touch coordinates
                                 const touch = e.touches[0];
-                                handleBoardMouseDown(touch, row, col);
-                            });
+                                const syntheticEvent = {
+                                    clientX: touch.clientX,
+                                    clientY: touch.clientY,
+                                    pageX: touch.pageX,
+                                    pageY: touch.pageY,
+                                    preventDefault: () => e.preventDefault(),
+                                    stopPropagation: () => e.stopPropagation()
+                                };
+                                handleBoardMouseDown(syntheticEvent, row, col);
+                            }, { passive: false });
                         }
 
                         board.appendChild(cell);
@@ -1141,13 +1187,22 @@ Sep Oct Nov Dec 28 29 30 14`;
                         handlePieceMouseDown(e, index, 'sidebar');
                     });
 
-                    // Touch support
+                    // Touch support - pass the event with touch coordinates
                     item.addEventListener('touchstart', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        // Create a synthetic event object with touch coordinates
                         const touch = e.touches[0];
-                        handlePieceMouseDown(touch, index, 'sidebar');
-                    });
+                        const syntheticEvent = {
+                            clientX: touch.clientX,
+                            clientY: touch.clientY,
+                            pageX: touch.pageX,
+                            pageY: touch.pageY,
+                            preventDefault: () => e.preventDefault(),
+                            stopPropagation: () => e.stopPropagation()
+                        };
+                        handlePieceMouseDown(syntheticEvent, index, 'sidebar');
+                    }, { passive: false });
                 }
 
                 list.appendChild(item);

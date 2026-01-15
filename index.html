@@ -335,6 +335,18 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .drag-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+        }
+
+        .piece-item.dragging {
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
@@ -374,12 +386,11 @@
                     <h3>How to Play:</h3>
                     <ul>
                         <li>Select a date to reveal target squares</li>
-                        <li><strong>Left-click</strong> a piece to select it</li>
-                        <li><strong>Right-click</strong> on the board to cycle through orientations</li>
-                        <li>Hover to preview placement</li>
-                        <li><strong>Left-click</strong> to place the piece</li>
-                        <li><strong>Click</strong> a placed piece to grab and reposition it</li>
-                        <li><strong>Click outside</strong> the board to remove the grabbed piece</li>
+                        <li><strong>Click</strong> a piece in the sidebar to rotate it</li>
+                        <li><strong>Click and hold</strong> to drag a piece onto the board</li>
+                        <li><strong>Release</strong> to drop the piece</li>
+                        <li><strong>Click and drag</strong> a placed piece to move it</li>
+                        <li><strong>Drag off the board</strong> to remove a piece</li>
                         <li>Use Hint or Solve buttons for help!</li>
                     </ul>
                 </div>
@@ -786,6 +797,15 @@ Sep Oct Nov Dec 28 29 30 14`;
         let allOrientations = [];
         let pieceOrientations = {};  // Track orientation index for each piece
 
+        // Drag state
+        let isDragging = false;
+        let dragStartTime = 0;
+        let dragThreshold = 200; // ms to distinguish click from hold
+        let dragTimer = null;
+        let dragPieceElement = null;
+        let dragSourceType = null; // 'sidebar' or 'board'
+        let dragPieceIndex = null; // Track which piece is being interacted with
+
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
             '#ef4444', // red (Piece1)
@@ -822,23 +842,6 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Force the input to recognize the new value
                 dateInput.dispatchEvent(new Event('change', { bubbles: true }));
             }, 0);
-
-            // Add click handler to remove piece when clicking outside board
-            document.addEventListener('click', (e) => {
-                // Check if click is outside the board and outside pieces list
-                const board = document.getElementById('board');
-                const piecesList = document.getElementById('pieces-list');
-                const dateControls = document.querySelector('.date-selector');
-                const actionButtons = document.querySelector('.action-buttons');
-
-                if (!board.contains(e.target) &&
-                    !piecesList.contains(e.target) &&
-                    !dateControls.contains(e.target) &&
-                    !actionButtons.contains(e.target)) {
-                    console.log('Clicking outside - removing selected piece');
-                    removeSelectedPiece();
-                }
-            });
         }
 
         function loadBoard() {
@@ -891,10 +894,21 @@ Sep Oct Nov Dec 28 29 30 14`;
                             }
                         }
 
-                        cell.addEventListener('click', (e) => handleCellClick(row, col, e));
-                        cell.addEventListener('contextmenu', (e) => handleRightClick(e));
-                        cell.addEventListener('mouseenter', () => showPreview(row, col));
-                        cell.addEventListener('mouseleave', () => clearPreview());
+                        // Check if cell is occupied - if so, add drag handler
+                        const occupied = occupiedCoords.find(o => o.row === row && o.col === col);
+                        if (occupied) {
+                            cell.addEventListener('mousedown', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleBoardMouseDown(e, row, col);
+                            });
+                            cell.addEventListener('touchstart', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const touch = e.touches[0];
+                                handleBoardMouseDown(touch, row, col);
+                            });
+                        }
 
                         board.appendChild(cell);
                     }
@@ -932,17 +946,19 @@ Sep Oct Nov Dec 28 29 30 14`;
                 item.appendChild(grid);
 
                 if (!usedPieces.has(piece.name)) {
-                    // Left-click to select
-                    item.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        selectPiece(index);
-                    });
-
-                    // Right-click to rotate in place
-                    item.addEventListener('contextmenu', (e) => {
+                    // Mousedown: start timer to detect click vs hold
+                    item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        rotatePieceInPlace(index);
+                        handlePieceMouseDown(e, index, 'sidebar');
+                    });
+
+                    // Touch support
+                    item.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const touch = e.touches[0];
+                        handlePieceMouseDown(touch, index, 'sidebar');
                     });
                 }
 
@@ -973,33 +989,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             return grid;
         }
 
-        function selectPiece(index) {
-            console.log('selectPiece called with index:', index);
-            console.log('piecesData[index]:', piecesData[index]);
-            console.log('usedPieces:', usedPieces);
-
-            if (usedPieces.has(piecesData[index].name)) {
-                console.log('Piece is already used, returning');
-                return;
-            }
-
-            selectedPieceIndex = index;
-
-            // Generate all unique orientations for this piece
-            allOrientations = generateAllOrientations(piecesData[index].coords);
-
-            // Start with the stored orientation for this piece
-            currentOrientationIndex = pieceOrientations[index] || 0;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
-
-            console.log('After selecting piece:');
-            console.log('  selectedPieceIndex:', selectedPieceIndex);
-            console.log('  selectedPieceCoords:', selectedPieceCoords);
-            console.log('  allOrientations.length:', allOrientations.length);
-            console.log('  currentOrientationIndex:', currentOrientationIndex);
-
-            renderPieces();
-        }
+        // selectPiece removed - replaced by drag system
 
         function rotatePieceInPlace(index) {
             // Generate all orientations for this piece
@@ -1060,84 +1050,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                 .join('|');
         }
 
-        function cycleOrientation() {
-            if (selectedPieceIndex === null || allOrientations.length === 0) return;
-
-            currentOrientationIndex = (currentOrientationIndex + 1) % allOrientations.length;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex]));
-            renderPieces();
-        }
-
-        function rotateSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Rotate 90 degrees clockwise: (row, col) -> (col, -row)
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.col,
-                col: -c.row
-            }));
-
-            // Normalize to (0, 0)
-            normalizePiece();
-            renderPieces();
-        }
-
-        function flipSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Flip horizontally: (row, col) -> (row, -col)
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.row,
-                col: -c.col
-            }));
-
-            // Normalize to (0, 0)
-            normalizePiece();
-            renderPieces();
-        }
-
-        function normalizePiece() {
-            const minRow = Math.min(...selectedPieceCoords.map(c => c.row));
-            const minCol = Math.min(...selectedPieceCoords.map(c => c.col));
-
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.row - minRow,
-                col: c.col - minCol
-            }));
-        }
-
-        function showPreview(row, col) {
-            if (selectedPieceIndex === null) return;
-
-            clearPreview();
-
-            const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
-            }));
-
-            const isValid = checkValidPlacement(absoluteCoords);
-            const pieceColor = pieceColors[selectedPieceIndex];
-
-            absoluteCoords.forEach(coord => {
-                const cell = document.querySelector(`[data-row="${coord.row}"][data-col="${coord.col}"]`);
-                if (cell && !cell.classList.contains('occupied') && !cell.classList.contains('target')) {
-                    cell.classList.add(isValid ? 'preview' : 'preview-invalid');
-                    if (isValid) {
-                        cell.style.backgroundColor = pieceColor;
-                        cell.style.opacity = '0.5';
-                    }
-                }
-            });
-        }
-
-        function clearPreview() {
-            document.querySelectorAll('.preview, .preview-invalid').forEach(cell => {
-                cell.classList.remove('preview', 'preview-invalid');
-                cell.style.backgroundColor = '';
-                cell.style.opacity = '';
-            });
-        }
+        // Old hover/preview/orientation functions removed - replaced by drag system
 
         function checkValidPlacement(absoluteCoords) {
             for (const coord of absoluteCoords) {
@@ -1154,150 +1067,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             return true;
         }
 
-        function handleCellClick(row, col, event) {
-            if (event) event.stopPropagation();  // Prevent global click handler from firing
-
-            console.log('handleCellClick called', row, col);
-            console.log('occupiedCoords:', occupiedCoords);
-
-            // Check if clicking on an occupied cell to grab it
-            const occupiedIndex = occupiedCoords.findIndex(o => o.row === row && o.col === col);
-            console.log('occupiedIndex:', occupiedIndex);
-
-            if (occupiedIndex !== -1) {
-                console.log('Calling grabPieceAt');
-                grabPieceAt(row, col);
-                return;
-            }
-
-            // Otherwise, try to place a piece
-            console.log('selectedPieceIndex:', selectedPieceIndex);
-            if (selectedPieceIndex === null) return;
-
-            const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
-            }));
-
-            // Validate placement locally
-            let valid = true;
-            let reason = "";
-
-            for (const coord of absoluteCoords) {
-                // Check if on board
-                const coordKey = `${coord.row},${coord.col}`;
-                if (!boardData.grid.hasOwnProperty(coordKey)) {
-                    valid = false;
-                    reason = "Piece extends outside board boundaries";
-                    break;
-                }
-
-                // Check if occupied
-                if (occupiedCoords.some(o => o.row === coord.row && o.col === coord.col)) {
-                    valid = false;
-                    reason = "Piece overlaps with already placed pieces";
-                    break;
-                }
-
-                // Check if covering target
-                if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
-                    valid = false;
-                    reason = "Piece covers the target date";
-                    break;
-                }
-            }
-
-            if (valid) {
-                // Place the piece
-                const piece = piecesData[selectedPieceIndex];
-                const pieceColor = pieceColors[selectedPieceIndex];
-
-                absoluteCoords.forEach(coord => {
-                    occupiedCoords.push({
-                        ...coord,
-                        color: pieceColor,
-                        pieceName: piece.name,
-                        pieceIndex: selectedPieceIndex,
-                        orientationIndex: currentOrientationIndex
-                    });
-                });
-
-                console.log('After placing piece, occupiedCoords:', occupiedCoords);
-
-                usedPieces.add(piece.name);
-                selectedPieceIndex = null;
-                selectedPieceCoords = [];
-                allOrientations = [];
-                currentOrientationIndex = 0;
-
-                renderBoard();
-                renderPieces();
-
-                checkWin();
-            } else {
-                alert(`Cannot place piece: ${reason}`);
-            }
-        }
-
-        function grabPieceAt(row, col) {
-            console.log('grabPieceAt called', row, col);
-
-            // Find which piece this cell belongs to
-            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
-            if (!clickedCell) {
-                console.log('No clicked cell found');
-                return;
-            }
-            console.log('Clicked cell:', clickedCell);
-
-            const pieceName = clickedCell.pieceName;
-            const storedOrientationIndex = clickedCell.orientationIndex;
-
-            // Find the piece index
-            const pieceIndex = piecesData.findIndex(p => p.name === pieceName);
-            if (pieceIndex === -1) {
-                console.log('Piece not found:', pieceName);
-                return;
-            }
-            console.log('Piece index:', pieceIndex, 'Name:', pieceName, 'Stored orientation:', storedOrientationIndex);
-
-            // Remove all cells belonging to this piece
-            occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
-
-            // Mark piece as unused (must happen before selectPiece)
-            usedPieces.delete(pieceName);
-
-            // Select this piece (grab it) - use the stored orientation it had when placed
-            selectedPieceIndex = pieceIndex;
-            allOrientations = generateAllOrientations(piecesData[pieceIndex].coords);
-            currentOrientationIndex = storedOrientationIndex !== undefined ? storedOrientationIndex : 0;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
-
-            console.log('Selected piece:', selectedPieceIndex);
-            console.log('Selected coords:', selectedPieceCoords);
-            console.log('All orientations count:', allOrientations.length);
-
-            renderBoard();
-            renderPieces();
-        }
-
-        function removeSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Just deselect the piece
-            selectedPieceIndex = null;
-            selectedPieceCoords = [];
-            allOrientations = [];
-            currentOrientationIndex = 0;
-
-            renderBoard();
-            renderPieces();
-        }
-
-        function handleRightClick(event) {
-            event.preventDefault();
-            cycleOrientation();
-        }
+        // Old click/selection functions removed - replaced by drag system
 
         function setDate() {
             const dateInput = document.getElementById('date-input');
@@ -1550,6 +1320,244 @@ Sep Oct Nov Dec 28 29 30 14`;
             const indicator = document.getElementById('loading-indicator');
             indicator.classList.remove('visible');
         }
+
+        // ===== NEW DRAG SYSTEM =====
+
+        function handlePieceMouseDown(e, index, source) {
+            dragStartTime = Date.now();
+            dragSourceType = source;
+            dragPieceIndex = index;
+
+            // Start timer for hold detection
+            dragTimer = setTimeout(() => {
+                // Hold detected - start drag
+                startDrag(e, index, source);
+            }, dragThreshold);
+        }
+
+        function handleBoardMouseDown(e, row, col) {
+            // Find which piece this cell belongs to
+            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
+            if (!clickedCell) return;
+
+            const pieceName = clickedCell.pieceName;
+            const pieceIndex = clickedCell.pieceIndex;
+
+            dragStartTime = Date.now();
+            dragSourceType = 'board';
+            dragPieceIndex = pieceIndex;
+
+            // Start drag for pieces on board after hold threshold
+            dragTimer = setTimeout(() => {
+                grabAndStartDrag(e, row, col, pieceName, pieceIndex);
+            }, dragThreshold);
+        }
+
+        function startDrag(e, index, source) {
+            isDragging = true;
+            selectedPieceIndex = index;
+
+            // Set up piece coords based on current rotation
+            const orientations = generateAllOrientations(piecesData[index].coords);
+            const orientIdx = pieceOrientations[index] || 0;
+            currentOrientationIndex = orientIdx;
+            allOrientations = orientations;
+            selectedPieceCoords = JSON.parse(JSON.stringify(orientations[orientIdx % orientations.length]));
+
+            // Create drag visual
+            createDragElement(selectedPieceCoords, pieceColors[index], e.clientX || e.pageX, e.clientY || e.pageY);
+
+            // Mark source as dragging
+            renderPieces();
+        }
+
+        function grabAndStartDrag(e, row, col, pieceName, pieceIndex) {
+            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
+            const storedOrientationIndex = clickedCell.orientationIndex;
+
+            // Remove piece from board
+            occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
+            usedPieces.delete(pieceName);
+
+            isDragging = true;
+            selectedPieceIndex = pieceIndex;
+            dragSourceType = 'board';
+
+            // Set up piece with its stored orientation
+            allOrientations = generateAllOrientations(piecesData[pieceIndex].coords);
+            currentOrientationIndex = storedOrientationIndex !== undefined ? storedOrientationIndex : 0;
+            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
+
+            // Create drag visual
+            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], e.clientX || e.pageX, e.clientY || e.pageY);
+
+            renderBoard();
+            renderPieces();
+        }
+
+        function createDragElement(coords, color, x, y) {
+            // Remove any existing drag element
+            if (dragPieceElement) {
+                dragPieceElement.remove();
+            }
+
+            const grid = createPieceGrid(coords, color);
+            grid.classList.add('drag-piece');
+            grid.style.left = x + 'px';
+            grid.style.top = y + 'px';
+            grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
+
+            document.body.appendChild(grid);
+            dragPieceElement = grid;
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || !dragPieceElement) return;
+
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+
+            dragPieceElement.style.left = x + 'px';
+            dragPieceElement.style.top = y + 'px';
+        }
+
+        function handleMouseUp(e) {
+            // Clear drag timer
+            if (dragTimer) {
+                clearTimeout(dragTimer);
+                dragTimer = null;
+            }
+
+            const holdDuration = Date.now() - dragStartTime;
+
+            if (isDragging) {
+                // Was dragging - try to drop
+                handleDrop(e);
+            } else if (holdDuration < dragThreshold && dragPieceIndex !== null && dragSourceType === 'sidebar') {
+                // Was a quick click on sidebar - rotate piece
+                rotatePieceInPlace(dragPieceIndex);
+            }
+
+            // Clean up
+            if (dragPieceElement) {
+                dragPieceElement.remove();
+                dragPieceElement = null;
+            }
+
+            isDragging = false;
+            dragStartTime = 0;
+            dragSourceType = null;
+            dragPieceIndex = null;
+
+            renderPieces();
+        }
+
+        function handleDrop(e) {
+            const x = e.clientX || e.changedTouches[0].clientX;
+            const y = e.clientY || e.changedTouches[0].clientY;
+
+            // Find what element is under the drop point
+            const elemBelow = document.elementFromPoint(x, y);
+
+            if (!elemBelow) {
+                // Dropped off screen - remove piece
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                return;
+            }
+
+            // Check if dropped on board
+            const cell = elemBelow.closest('.cell');
+
+            if (cell && cell.dataset.row !== undefined) {
+                // Dropped on board - try to place
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+
+                tryPlacePiece(row, col);
+            } else {
+                // Dropped off board - remove piece
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                renderBoard();
+                renderPieces();
+            }
+        }
+
+        function tryPlacePiece(row, col) {
+            if (selectedPieceIndex === null) return;
+
+            const absoluteCoords = selectedPieceCoords.map(c => ({
+                row: row + c.row,
+                col: col + c.col
+            }));
+
+            // Validate placement locally
+            let valid = true;
+            let reason = "";
+
+            for (const coord of absoluteCoords) {
+                // Check if on board
+                const coordKey = `${coord.row},${coord.col}`;
+                if (!boardData.grid.hasOwnProperty(coordKey)) {
+                    valid = false;
+                    reason = "Piece extends outside board boundaries";
+                    break;
+                }
+
+                // Check if occupied
+                if (occupiedCoords.some(o => o.row === coord.row && o.col === coord.col)) {
+                    valid = false;
+                    reason = "Piece overlaps with already placed pieces";
+                    break;
+                }
+
+                // Check if covering target
+                if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
+                    valid = false;
+                    reason = "Piece covers the target date";
+                    break;
+                }
+            }
+
+            if (valid) {
+                // Place the piece
+                const piece = piecesData[selectedPieceIndex];
+                const pieceColor = pieceColors[selectedPieceIndex];
+
+                absoluteCoords.forEach(coord => {
+                    occupiedCoords.push({
+                        ...coord,
+                        color: pieceColor,
+                        pieceName: piece.name,
+                        pieceIndex: selectedPieceIndex,
+                        orientationIndex: currentOrientationIndex
+                    });
+                });
+
+                usedPieces.add(piece.name);
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                allOrientations = [];
+                currentOrientationIndex = 0;
+
+                renderBoard();
+                renderPieces();
+                checkWin();
+            } else {
+                // Invalid placement - piece disappears (removed)
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                renderBoard();
+                renderPieces();
+            }
+        }
+
+        // Add global event listeners for drag system
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchmove', handleMouseMove, { passive: false });
+        document.addEventListener('touchend', handleMouseUp);
 
         // Initialize on load
         init();

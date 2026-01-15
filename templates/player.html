@@ -335,6 +335,18 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .drag-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+        }
+
+        .piece-item.dragging {
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
@@ -374,12 +386,11 @@
                     <h3>How to Play:</h3>
                     <ul>
                         <li>Select a date to reveal target squares</li>
-                        <li><strong>Left-click</strong> a piece to select it</li>
-                        <li><strong>Right-click</strong> on the board to cycle through orientations</li>
-                        <li>Hover to preview placement</li>
-                        <li><strong>Left-click</strong> to place the piece</li>
-                        <li><strong>Click</strong> a placed piece to grab and reposition it</li>
-                        <li><strong>Click outside</strong> the board to remove the grabbed piece</li>
+                        <li><strong>Click</strong> a piece in the sidebar to rotate it</li>
+                        <li><strong>Click and hold</strong> to drag a piece onto the board</li>
+                        <li><strong>Release</strong> to drop the piece</li>
+                        <li><strong>Click and drag</strong> a placed piece to move it</li>
+                        <li><strong>Drag off the board</strong> to remove a piece</li>
                         <li>Use Hint or Solve buttons for help!</li>
                     </ul>
                 </div>
@@ -388,9 +399,392 @@
     </div>
 
     <script>
+        // ===== EMBEDDED DATA =====
+        // Board configuration (from board.txt)
+        const BOARD_RAW_DATA = `Jan Feb Mar Apr 1 2 3 Mon Tue
+May 4 5 6 7 8 9 Wed .
+Jun 10 11 12 13 31 15 Thu .
+Jul 16 17 18 19 20 21 Fri Sat
+Aug 22 23 24 25 26 27 . Sun
+Sep Oct Nov Dec 28 29 30 14`;
+
+        // Pieces configuration (from pieces.txt)
+        const PIECES_RAW_DATA = [
+            { name: 'Piece1', shape: '#####' },
+            { name: 'Piece2', shape: '####\n#' },
+            { name: 'Piece3', shape: '###\n#\n#' },
+            { name: 'Piece4', shape: '###\n #\n #' },
+            { name: 'Piece5', shape: ' #\n##\n#\n#' },
+            { name: 'Piece6', shape: '#\n##\n#\n#' },
+            { name: 'Piece7', shape: '##\n ##\n #' },
+            { name: 'Piece8', shape: '##\n #\n ##' },
+            { name: 'Piece9', shape: '##\n#\n##' },
+            { name: 'Piece10', shape: '##\n##\n#' }
+        ];
+
+        // ===== CORE CLASSES (Ported from Python) =====
+
+        class Coord {
+            constructor(row, col) {
+                this.row = row;
+                this.col = col;
+            }
+
+            add(other) {
+                return new Coord(this.row + other.row, this.col + other.col);
+            }
+
+            equals(other) {
+                return this.row === other.row && this.col === other.col;
+            }
+
+            toString() {
+                return `${this.row},${this.col}`;
+            }
+        }
+
+        class Board {
+            constructor(grid, width, height) {
+                this.grid = grid;  // Object with "row,col" keys
+                this.width = width;
+                this.height = height;
+                this.coords = new Set(Object.keys(grid));
+            }
+
+            isValidCoord(coord) {
+                return this.grid.hasOwnProperty(coord.toString());
+            }
+
+            getLabel(coord) {
+                return this.grid[coord.toString()] || null;
+            }
+        }
+
+        class Piece {
+            constructor(name, coords) {
+                this.name = name;
+                this.coords = coords;  // Array of Coord objects
+                this._normalize();
+            }
+
+            _normalize() {
+                if (this.coords.length === 0) return;
+
+                const minRow = Math.min(...this.coords.map(c => c.row));
+                const minCol = Math.min(...this.coords.map(c => c.col));
+
+                this.coords = this.coords.map(c =>
+                    new Coord(c.row - minRow, c.col - minCol)
+                );
+            }
+
+            rotate90() {
+                const rotated = this.coords.map(c => new Coord(c.col, -c.row));
+                return new Piece(this.name, rotated);
+            }
+
+            flipHorizontal() {
+                const flipped = this.coords.map(c => new Coord(c.row, -c.col));
+                return new Piece(this.name, flipped);
+            }
+
+            getAllOrientations() {
+                const orientations = [];
+                const seen = new Set();
+
+                let current = this;
+                for (let flip = 0; flip < 2; flip++) {
+                    for (let rot = 0; rot < 4; rot++) {
+                        const key = current.coords
+                            .map(c => `${c.row},${c.col}`)
+                            .sort()
+                            .join('|');
+
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            orientations.push(current);
+                        }
+
+                        current = current.rotate90();
+                    }
+                    current = current.flipHorizontal();
+                }
+
+                return orientations;
+            }
+
+            placeAt(coord) {
+                return this.coords.map(c => coord.add(c));
+            }
+        }
+
+        class GameState {
+            constructor(board, targetCoords) {
+                this.board = board;
+                this.targetCoords = new Set(targetCoords.map(c => c.toString()));
+                this.occupied = new Set();
+                this.placements = [];
+            }
+
+            canPlace(piece, coord) {
+                const absoluteCoords = piece.placeAt(coord);
+
+                for (const absCoord of absoluteCoords) {
+                    // Check if on board
+                    if (!this.board.isValidCoord(absCoord)) {
+                        return false;
+                    }
+
+                    // Check if occupied
+                    if (this.occupied.has(absCoord.toString())) {
+                        return false;
+                    }
+
+                    // Check if target
+                    if (this.targetCoords.has(absCoord.toString())) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            placePiece(piece, coord, pieceName, orientationIdx) {
+                const absoluteCoords = piece.placeAt(coord);
+                for (const absCoord of absoluteCoords) {
+                    this.occupied.add(absCoord.toString());
+                }
+                this.placements.push({
+                    pieceName,
+                    orientationIdx,
+                    coord,
+                    absoluteCoords
+                });
+            }
+
+            removeLastPiece() {
+                if (this.placements.length === 0) return;
+
+                const { absoluteCoords } = this.placements.pop();
+                for (const absCoord of absoluteCoords) {
+                    this.occupied.delete(absCoord.toString());
+                }
+            }
+
+            isComplete() {
+                // All board coords except targets should be covered
+                const requiredCoverage = new Set();
+                for (const coordStr of this.board.coords) {
+                    if (!this.targetCoords.has(coordStr)) {
+                        requiredCoverage.add(coordStr);
+                    }
+                }
+
+                if (requiredCoverage.size !== this.occupied.size) {
+                    return false;
+                }
+
+                for (const coord of requiredCoverage) {
+                    if (!this.occupied.has(coord)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            getUncoveredCoords() {
+                const uncovered = [];
+                for (const coordStr of this.board.coords) {
+                    if (!this.targetCoords.has(coordStr) && !this.occupied.has(coordStr)) {
+                        const [row, col] = coordStr.split(',').map(Number);
+                        uncovered.push(new Coord(row, col));
+                    }
+                }
+                return uncovered;
+            }
+        }
+
+        class PuzzleSolver {
+            constructor(board, pieces) {
+                this.board = board;
+                this.pieces = pieces;
+                this.pieceOrientationsMap = {};
+
+                // Pre-compute all orientations for each piece
+                for (const piece of pieces) {
+                    this.pieceOrientationsMap[piece.name] = piece.getAllOrientations();
+                }
+            }
+
+            solve(targetCoords) {
+                const state = new GameState(this.board, targetCoords);
+                const unusedPieces = [...this.pieces];
+
+                if (this._backtrack(state, unusedPieces)) {
+                    return state;
+                }
+                return null;
+            }
+
+            _backtrack(state, unusedPieces) {
+                // Base case: all pieces placed
+                if (unusedPieces.length === 0) {
+                    return state.isComplete();
+                }
+
+                // Get next uncovered coordinate
+                const uncovered = state.getUncoveredCoords();
+                if (uncovered.length === 0) {
+                    return state.isComplete();
+                }
+
+                // Pick first uncovered coordinate as anchor
+                const targetCoord = uncovered.reduce((min, c) =>
+                    (c.row < min.row || (c.row === min.row && c.col < min.col)) ? c : min
+                );
+
+                // Try each remaining piece
+                for (let pieceIdx = 0; pieceIdx < unusedPieces.length; pieceIdx++) {
+                    const piece = unusedPieces[pieceIdx];
+                    const orientations = this.pieceOrientationsMap[piece.name];
+
+                    // Try all orientations
+                    for (let orientIdx = 0; orientIdx < orientations.length; orientIdx++) {
+                        const orientedPiece = orientations[orientIdx];
+
+                        // Try placing so piece covers target coordinate
+                        for (const pieceCoord of orientedPiece.coords) {
+                            const placementCoord = new Coord(
+                                targetCoord.row - pieceCoord.row,
+                                targetCoord.col - pieceCoord.col
+                            );
+
+                            if (state.canPlace(orientedPiece, placementCoord)) {
+                                // Place piece
+                                state.placePiece(orientedPiece, placementCoord, piece.name, orientIdx);
+
+                                // Recurse with remaining pieces
+                                const remaining = [
+                                    ...unusedPieces.slice(0, pieceIdx),
+                                    ...unusedPieces.slice(pieceIdx + 1)
+                                ];
+
+                                if (this._backtrack(state, remaining)) {
+                                    return true;
+                                }
+
+                                // Backtrack
+                                state.removeLastPiece();
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+
+        function parseBoardData(rawData) {
+            const lines = rawData.trim().split('\n');
+            const grid = {};
+            let maxWidth = 0;
+            const height = lines.length;
+
+            for (let row = 0; row < lines.length; row++) {
+                const cells = lines[row].trim().split(/\s+/);
+                maxWidth = Math.max(maxWidth, cells.length);
+
+                for (let col = 0; col < cells.length; col++) {
+                    const coord = new Coord(row, col);
+                    grid[coord.toString()] = cells[col];
+                }
+            }
+
+            return new Board(grid, maxWidth, height);
+        }
+
+        function parsePiecesData(rawData) {
+            return rawData.map(item => {
+                const lines = item.shape.split('\n');
+                const coords = [];
+
+                for (let row = 0; row < lines.length; row++) {
+                    for (let col = 0; col < lines[row].length; col++) {
+                        if (lines[row][col] === '#') {
+                            coords.push(new Coord(row, col));
+                        }
+                    }
+                }
+
+                return new Piece(item.name, coords);
+            });
+        }
+
+        function parseDateStr(dateStr) {
+            let dateObj;
+
+            if (dateStr.toLowerCase() === 'today' || !dateStr) {
+                dateObj = new Date();
+            } else {
+                // Parse date string in local time (not UTC) to avoid timezone issues
+                if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    let year, month, day;
+
+                    if (parts.length === 2) {
+                        // MM-DD format
+                        year = new Date().getFullYear();
+                        month = parseInt(parts[0], 10);
+                        day = parseInt(parts[1], 10);
+                    } else if (parts.length === 3) {
+                        // YYYY-MM-DD format
+                        year = parseInt(parts[0], 10);
+                        month = parseInt(parts[1], 10);
+                        day = parseInt(parts[2], 10);
+                    }
+
+                    // Create date in local time (month is 0-indexed)
+                    dateObj = new Date(year, month - 1, day);
+                } else {
+                    dateObj = new Date();
+                }
+            }
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            const month = months[dateObj.getMonth()];
+            const day = dateObj.getDate().toString();
+            const weekday = weekdays[dateObj.getDay()];
+
+            return { month, day, weekday };
+        }
+
+        function getTargetCoordsFromBoard(board, month, day, weekday) {
+            const targetCoords = [];
+
+            for (const [coordStr, label] of Object.entries(board.grid)) {
+                if (label === month || label === day || label === weekday) {
+                    const [row, col] = coordStr.split(',').map(Number);
+                    targetCoords.push(new Coord(row, col));
+                }
+            }
+
+            if (targetCoords.length !== 3) {
+                throw new Error(`Expected 3 target coordinates, found ${targetCoords.length}`);
+            }
+
+            return targetCoords;
+        }
+
         // Game state
         let boardData = null;
         let piecesData = [];
+        let solver = null;  // PuzzleSolver instance
         let targetCoords = [];
         let occupiedCoords = [];
         let selectedPieceIndex = null;
@@ -402,6 +796,15 @@
         let currentOrientationIndex = 0;
         let allOrientations = [];
         let pieceOrientations = {};  // Track orientation index for each piece
+
+        // Drag state
+        let isDragging = false;
+        let dragStartTime = 0;
+        let dragThreshold = 200; // ms to distinguish click from hold
+        let dragTimer = null;
+        let dragPieceElement = null;
+        let dragSourceType = null; // 'sidebar' or 'board'
+        let dragPieceIndex = null; // Track which piece is being interacted with
 
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
@@ -418,9 +821,13 @@
         ];
 
         // Initialize
-        async function init() {
-            await loadBoard();
-            await loadPieces();
+        function init() {
+            loadBoard();
+            loadPieces();
+
+            // Initialize solver with board and pieces
+            solver = new PuzzleSolver(boardData, piecesData);
+
             renderBoard();
             renderPieces();
 
@@ -435,33 +842,16 @@
                 // Force the input to recognize the new value
                 dateInput.dispatchEvent(new Event('change', { bubbles: true }));
             }, 0);
-
-            // Add click handler to remove piece when clicking outside board
-            document.addEventListener('click', (e) => {
-                // Check if click is outside the board and outside pieces list
-                const board = document.getElementById('board');
-                const piecesList = document.getElementById('pieces-list');
-                const dateControls = document.querySelector('.date-selector');
-                const actionButtons = document.querySelector('.action-buttons');
-
-                if (!board.contains(e.target) &&
-                    !piecesList.contains(e.target) &&
-                    !dateControls.contains(e.target) &&
-                    !actionButtons.contains(e.target)) {
-                    console.log('Clicking outside - removing selected piece');
-                    removeSelectedPiece();
-                }
-            });
         }
 
-        async function loadBoard() {
-            const response = await fetch('/api/board');
-            boardData = await response.json();
+        function loadBoard() {
+            // Parse embedded board data
+            boardData = parseBoardData(BOARD_RAW_DATA);
         }
 
-        async function loadPieces() {
-            const response = await fetch('/api/pieces');
-            piecesData = await response.json();
+        function loadPieces() {
+            // Parse embedded pieces data
+            piecesData = parsePiecesData(PIECES_RAW_DATA);
 
             // Initialize orientation index for each piece to 0
             piecesData.forEach((piece, index) => {
@@ -504,10 +894,21 @@
                             }
                         }
 
-                        cell.addEventListener('click', (e) => handleCellClick(row, col, e));
-                        cell.addEventListener('contextmenu', (e) => handleRightClick(e));
-                        cell.addEventListener('mouseenter', () => showPreview(row, col));
-                        cell.addEventListener('mouseleave', () => clearPreview());
+                        // Check if cell is occupied - if so, add drag handler
+                        const occupied = occupiedCoords.find(o => o.row === row && o.col === col);
+                        if (occupied) {
+                            cell.addEventListener('mousedown', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleBoardMouseDown(e, row, col);
+                            });
+                            cell.addEventListener('touchstart', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const touch = e.touches[0];
+                                handleBoardMouseDown(touch, row, col);
+                            });
+                        }
 
                         board.appendChild(cell);
                     }
@@ -545,17 +946,19 @@
                 item.appendChild(grid);
 
                 if (!usedPieces.has(piece.name)) {
-                    // Left-click to select
-                    item.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        selectPiece(index);
-                    });
-
-                    // Right-click to rotate in place
-                    item.addEventListener('contextmenu', (e) => {
+                    // Mousedown: start timer to detect click vs hold
+                    item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        rotatePieceInPlace(index);
+                        handlePieceMouseDown(e, index, 'sidebar');
+                    });
+
+                    // Touch support
+                    item.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const touch = e.touches[0];
+                        handlePieceMouseDown(touch, index, 'sidebar');
                     });
                 }
 
@@ -586,33 +989,7 @@
             return grid;
         }
 
-        function selectPiece(index) {
-            console.log('selectPiece called with index:', index);
-            console.log('piecesData[index]:', piecesData[index]);
-            console.log('usedPieces:', usedPieces);
-
-            if (usedPieces.has(piecesData[index].name)) {
-                console.log('Piece is already used, returning');
-                return;
-            }
-
-            selectedPieceIndex = index;
-
-            // Generate all unique orientations for this piece
-            allOrientations = generateAllOrientations(piecesData[index].coords);
-
-            // Start with the stored orientation for this piece
-            currentOrientationIndex = pieceOrientations[index] || 0;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
-
-            console.log('After selecting piece:');
-            console.log('  selectedPieceIndex:', selectedPieceIndex);
-            console.log('  selectedPieceCoords:', selectedPieceCoords);
-            console.log('  allOrientations.length:', allOrientations.length);
-            console.log('  currentOrientationIndex:', currentOrientationIndex);
-
-            renderPieces();
-        }
+        // selectPiece removed - replaced by drag system
 
         function rotatePieceInPlace(index) {
             // Generate all orientations for this piece
@@ -673,84 +1050,7 @@
                 .join('|');
         }
 
-        function cycleOrientation() {
-            if (selectedPieceIndex === null || allOrientations.length === 0) return;
-
-            currentOrientationIndex = (currentOrientationIndex + 1) % allOrientations.length;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex]));
-            renderPieces();
-        }
-
-        function rotateSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Rotate 90 degrees clockwise: (row, col) -> (col, -row)
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.col,
-                col: -c.row
-            }));
-
-            // Normalize to (0, 0)
-            normalizePiece();
-            renderPieces();
-        }
-
-        function flipSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Flip horizontally: (row, col) -> (row, -col)
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.row,
-                col: -c.col
-            }));
-
-            // Normalize to (0, 0)
-            normalizePiece();
-            renderPieces();
-        }
-
-        function normalizePiece() {
-            const minRow = Math.min(...selectedPieceCoords.map(c => c.row));
-            const minCol = Math.min(...selectedPieceCoords.map(c => c.col));
-
-            selectedPieceCoords = selectedPieceCoords.map(c => ({
-                row: c.row - minRow,
-                col: c.col - minCol
-            }));
-        }
-
-        function showPreview(row, col) {
-            if (selectedPieceIndex === null) return;
-
-            clearPreview();
-
-            const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
-            }));
-
-            const isValid = checkValidPlacement(absoluteCoords);
-            const pieceColor = pieceColors[selectedPieceIndex];
-
-            absoluteCoords.forEach(coord => {
-                const cell = document.querySelector(`[data-row="${coord.row}"][data-col="${coord.col}"]`);
-                if (cell && !cell.classList.contains('occupied') && !cell.classList.contains('target')) {
-                    cell.classList.add(isValid ? 'preview' : 'preview-invalid');
-                    if (isValid) {
-                        cell.style.backgroundColor = pieceColor;
-                        cell.style.opacity = '0.5';
-                    }
-                }
-            });
-        }
-
-        function clearPreview() {
-            document.querySelectorAll('.preview, .preview-invalid').forEach(cell => {
-                cell.classList.remove('preview', 'preview-invalid');
-                cell.style.backgroundColor = '';
-                cell.style.opacity = '';
-            });
-        }
+        // Old hover/preview/orientation functions removed - replaced by drag system
 
         function checkValidPlacement(absoluteCoords) {
             for (const coord of absoluteCoords) {
@@ -767,138 +1067,9 @@
             return true;
         }
 
-        async function handleCellClick(row, col, event) {
-            if (event) event.stopPropagation();  // Prevent global click handler from firing
+        // Old click/selection functions removed - replaced by drag system
 
-            console.log('handleCellClick called', row, col);
-            console.log('occupiedCoords:', occupiedCoords);
-
-            // Check if clicking on an occupied cell to grab it
-            const occupiedIndex = occupiedCoords.findIndex(o => o.row === row && o.col === col);
-            console.log('occupiedIndex:', occupiedIndex);
-
-            if (occupiedIndex !== -1) {
-                console.log('Calling grabPieceAt');
-                grabPieceAt(row, col);
-                return;
-            }
-
-            // Otherwise, try to place a piece
-            console.log('selectedPieceIndex:', selectedPieceIndex);
-            if (selectedPieceIndex === null) return;
-
-            const absoluteCoords = selectedPieceCoords.map(c => ({
-                row: row + c.row,
-                col: col + c.col
-            }));
-
-            // Validate placement with backend
-            const response = await fetch('/api/validate_placement', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    piece_coords: selectedPieceCoords,
-                    placement: { row, col },
-                    target_coords: targetCoords,
-                    occupied: occupiedCoords
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.valid) {
-                // Place the piece
-                const piece = piecesData[selectedPieceIndex];
-                const pieceColor = pieceColors[selectedPieceIndex];
-
-                absoluteCoords.forEach(coord => {
-                    occupiedCoords.push({
-                        ...coord,
-                        color: pieceColor,
-                        pieceName: piece.name,
-                        pieceIndex: selectedPieceIndex,
-                        orientationIndex: currentOrientationIndex
-                    });
-                });
-
-                console.log('After placing piece, occupiedCoords:', occupiedCoords);
-
-                usedPieces.add(piece.name);
-                selectedPieceIndex = null;
-                selectedPieceCoords = [];
-                allOrientations = [];
-                currentOrientationIndex = 0;
-
-                renderBoard();
-                renderPieces();
-
-                await checkWin();
-            } else {
-                alert(`Cannot place piece: ${result.reason}`);
-            }
-        }
-
-        function grabPieceAt(row, col) {
-            console.log('grabPieceAt called', row, col);
-
-            // Find which piece this cell belongs to
-            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
-            if (!clickedCell) {
-                console.log('No clicked cell found');
-                return;
-            }
-            console.log('Clicked cell:', clickedCell);
-
-            const pieceName = clickedCell.pieceName;
-            const storedOrientationIndex = clickedCell.orientationIndex;
-
-            // Find the piece index
-            const pieceIndex = piecesData.findIndex(p => p.name === pieceName);
-            if (pieceIndex === -1) {
-                console.log('Piece not found:', pieceName);
-                return;
-            }
-            console.log('Piece index:', pieceIndex, 'Name:', pieceName, 'Stored orientation:', storedOrientationIndex);
-
-            // Remove all cells belonging to this piece
-            occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
-
-            // Mark piece as unused (must happen before selectPiece)
-            usedPieces.delete(pieceName);
-
-            // Select this piece (grab it) - use the stored orientation it had when placed
-            selectedPieceIndex = pieceIndex;
-            allOrientations = generateAllOrientations(piecesData[pieceIndex].coords);
-            currentOrientationIndex = storedOrientationIndex !== undefined ? storedOrientationIndex : 0;
-            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
-
-            console.log('Selected piece:', selectedPieceIndex);
-            console.log('Selected coords:', selectedPieceCoords);
-            console.log('All orientations count:', allOrientations.length);
-
-            renderBoard();
-            renderPieces();
-        }
-
-        function removeSelectedPiece() {
-            if (selectedPieceIndex === null) return;
-
-            // Just deselect the piece
-            selectedPieceIndex = null;
-            selectedPieceCoords = [];
-            allOrientations = [];
-            currentOrientationIndex = 0;
-
-            renderBoard();
-            renderPieces();
-        }
-
-        function handleRightClick(event) {
-            event.preventDefault();
-            cycleOrientation();
-        }
-
-        async function setDate() {
+        function setDate() {
             const dateInput = document.getElementById('date-input');
             const dateStr = dateInput.value;
 
@@ -907,24 +1078,16 @@
                 return;
             }
 
-            const response = await fetch('/api/target_coords', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: dateStr })
-            });
+            try {
+                // Parse date string to get month, day, weekday
+                const parsed = parseDateStr(dateStr);
+                targetDate = parsed;
 
-            const result = await response.json();
-
-            if (result.success) {
-                targetCoords = result.coords;
-                targetDate = {
-                    month: result.month,
-                    day: result.day,
-                    weekday: result.weekday
-                };
+                // Get target coordinates from board
+                targetCoords = getTargetCoordsFromBoard(boardData, parsed.month, parsed.day, parsed.weekday);
 
                 document.getElementById('status').textContent =
-                    `Target: ${result.month} ${result.day}, ${result.weekday}`;
+                    `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
 
                 // Enable solve and hint buttons
                 document.getElementById('solve-btn').disabled = false;
@@ -932,8 +1095,8 @@
 
                 resetGame(false);
                 renderBoard();
-            } else {
-                alert(`Error: ${result.error}`);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
             }
         }
 
@@ -946,19 +1109,23 @@
             setDate();
         }
 
-        async function checkWin() {
-            const response = await fetch('/api/check_win', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    target_coords: targetCoords,
-                    occupied: occupiedCoords
-                })
-            });
+        function checkWin() {
+            // Check if all non-target squares are covered
+            const targetSet = new Set(targetCoords.map(c => `${c.row},${c.col}`));
+            const occupiedSet = new Set(occupiedCoords.map(o => `${o.row},${o.col}`));
 
-            const result = await response.json();
+            // Required coverage = all board coords minus target coords
+            let requiredCount = 0;
+            for (const coordStr of boardData.coords) {
+                if (!targetSet.has(coordStr)) {
+                    requiredCount++;
+                }
+            }
 
-            if (result.solved) {
+            // Check if solved
+            const isSolved = occupiedSet.size === requiredCount;
+
+            if (isSolved) {
                 const statusEl = document.getElementById('status');
                 statusEl.textContent = '🎉 Puzzle Solved! Congratulations! 🎉';
                 statusEl.classList.add('solved');
@@ -992,7 +1159,7 @@
             renderPieces();
         }
 
-        async function solvePuzzle() {
+        function solvePuzzle() {
             if (!targetCoords.length) {
                 alert('Please select a date first');
                 return;
@@ -1003,7 +1170,7 @@
 
             // Get solution if we don't have it yet
             if (!solution) {
-                await fetchSolution();
+                fetchSolution();
             }
 
             // Hide loading indicator
@@ -1042,10 +1209,10 @@
             renderBoard();
             renderPieces();
 
-            await checkWin();
+            checkWin();
         }
 
-        async function getHint() {
+        function getHint() {
             if (!targetCoords.length) {
                 alert('Please select a date first');
                 return;
@@ -1054,7 +1221,7 @@
             // Get solution if we don't have it yet
             if (!solution) {
                 showLoading('Finding next piece...');
-                await fetchSolution();
+                fetchSolution();
                 hideLoading();
             }
 
@@ -1104,29 +1271,40 @@
             renderBoard();
             renderPieces();
 
-            await checkWin();
+            checkWin();
         }
 
-        async function fetchSolution() {
+        function fetchSolution() {
             try {
-                const response = await fetch('/api/solve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        target_coords: targetCoords
-                    })
-                });
+                // Use local JavaScript solver
+                const solvedState = solver.solve(targetCoords);
 
-                const result = await response.json();
+                if (solvedState) {
+                    // Format solution to match expected structure
+                    const placements = solvedState.placements.map(placement => {
+                        const pieceNum = placement.pieceName.replace('Piece', '');
+                        const pieceIndex = piecesData.findIndex(p => p.name === placement.pieceName);
+                        const pieceColor = pieceColors[pieceIndex];
 
-                if (result.success) {
-                    solution = result;
+                        return {
+                            piece_name: placement.pieceName,
+                            piece_letter: String.fromCharCode(96 + parseInt(pieceNum)),
+                            orientation_idx: placement.orientationIdx,
+                            origin: { row: placement.coord.row, col: placement.coord.col },
+                            coords: placement.absoluteCoords.map(c => ({ row: c.row, col: c.col }))
+                        };
+                    });
+
+                    solution = {
+                        success: true,
+                        placements: placements
+                    };
                 } else {
                     solution = null;
-                    console.error('No solution found:', result.error);
+                    console.error('No solution found');
                 }
             } catch (error) {
-                console.error('Error fetching solution:', error);
+                console.error('Error solving puzzle:', error);
                 solution = null;
             }
         }
@@ -1142,6 +1320,244 @@
             const indicator = document.getElementById('loading-indicator');
             indicator.classList.remove('visible');
         }
+
+        // ===== NEW DRAG SYSTEM =====
+
+        function handlePieceMouseDown(e, index, source) {
+            dragStartTime = Date.now();
+            dragSourceType = source;
+            dragPieceIndex = index;
+
+            // Start timer for hold detection
+            dragTimer = setTimeout(() => {
+                // Hold detected - start drag
+                startDrag(e, index, source);
+            }, dragThreshold);
+        }
+
+        function handleBoardMouseDown(e, row, col) {
+            // Find which piece this cell belongs to
+            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
+            if (!clickedCell) return;
+
+            const pieceName = clickedCell.pieceName;
+            const pieceIndex = clickedCell.pieceIndex;
+
+            dragStartTime = Date.now();
+            dragSourceType = 'board';
+            dragPieceIndex = pieceIndex;
+
+            // Start drag for pieces on board after hold threshold
+            dragTimer = setTimeout(() => {
+                grabAndStartDrag(e, row, col, pieceName, pieceIndex);
+            }, dragThreshold);
+        }
+
+        function startDrag(e, index, source) {
+            isDragging = true;
+            selectedPieceIndex = index;
+
+            // Set up piece coords based on current rotation
+            const orientations = generateAllOrientations(piecesData[index].coords);
+            const orientIdx = pieceOrientations[index] || 0;
+            currentOrientationIndex = orientIdx;
+            allOrientations = orientations;
+            selectedPieceCoords = JSON.parse(JSON.stringify(orientations[orientIdx % orientations.length]));
+
+            // Create drag visual
+            createDragElement(selectedPieceCoords, pieceColors[index], e.clientX || e.pageX, e.clientY || e.pageY);
+
+            // Mark source as dragging
+            renderPieces();
+        }
+
+        function grabAndStartDrag(e, row, col, pieceName, pieceIndex) {
+            const clickedCell = occupiedCoords.find(o => o.row === row && o.col === col);
+            const storedOrientationIndex = clickedCell.orientationIndex;
+
+            // Remove piece from board
+            occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
+            usedPieces.delete(pieceName);
+
+            isDragging = true;
+            selectedPieceIndex = pieceIndex;
+            dragSourceType = 'board';
+
+            // Set up piece with its stored orientation
+            allOrientations = generateAllOrientations(piecesData[pieceIndex].coords);
+            currentOrientationIndex = storedOrientationIndex !== undefined ? storedOrientationIndex : 0;
+            selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
+
+            // Create drag visual
+            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], e.clientX || e.pageX, e.clientY || e.pageY);
+
+            renderBoard();
+            renderPieces();
+        }
+
+        function createDragElement(coords, color, x, y) {
+            // Remove any existing drag element
+            if (dragPieceElement) {
+                dragPieceElement.remove();
+            }
+
+            const grid = createPieceGrid(coords, color);
+            grid.classList.add('drag-piece');
+            grid.style.left = x + 'px';
+            grid.style.top = y + 'px';
+            grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
+
+            document.body.appendChild(grid);
+            dragPieceElement = grid;
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || !dragPieceElement) return;
+
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+
+            dragPieceElement.style.left = x + 'px';
+            dragPieceElement.style.top = y + 'px';
+        }
+
+        function handleMouseUp(e) {
+            // Clear drag timer
+            if (dragTimer) {
+                clearTimeout(dragTimer);
+                dragTimer = null;
+            }
+
+            const holdDuration = Date.now() - dragStartTime;
+
+            if (isDragging) {
+                // Was dragging - try to drop
+                handleDrop(e);
+            } else if (holdDuration < dragThreshold && dragPieceIndex !== null && dragSourceType === 'sidebar') {
+                // Was a quick click on sidebar - rotate piece
+                rotatePieceInPlace(dragPieceIndex);
+            }
+
+            // Clean up
+            if (dragPieceElement) {
+                dragPieceElement.remove();
+                dragPieceElement = null;
+            }
+
+            isDragging = false;
+            dragStartTime = 0;
+            dragSourceType = null;
+            dragPieceIndex = null;
+
+            renderPieces();
+        }
+
+        function handleDrop(e) {
+            const x = e.clientX || e.changedTouches[0].clientX;
+            const y = e.clientY || e.changedTouches[0].clientY;
+
+            // Find what element is under the drop point
+            const elemBelow = document.elementFromPoint(x, y);
+
+            if (!elemBelow) {
+                // Dropped off screen - remove piece
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                return;
+            }
+
+            // Check if dropped on board
+            const cell = elemBelow.closest('.cell');
+
+            if (cell && cell.dataset.row !== undefined) {
+                // Dropped on board - try to place
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+
+                tryPlacePiece(row, col);
+            } else {
+                // Dropped off board - remove piece
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                renderBoard();
+                renderPieces();
+            }
+        }
+
+        function tryPlacePiece(row, col) {
+            if (selectedPieceIndex === null) return;
+
+            const absoluteCoords = selectedPieceCoords.map(c => ({
+                row: row + c.row,
+                col: col + c.col
+            }));
+
+            // Validate placement locally
+            let valid = true;
+            let reason = "";
+
+            for (const coord of absoluteCoords) {
+                // Check if on board
+                const coordKey = `${coord.row},${coord.col}`;
+                if (!boardData.grid.hasOwnProperty(coordKey)) {
+                    valid = false;
+                    reason = "Piece extends outside board boundaries";
+                    break;
+                }
+
+                // Check if occupied
+                if (occupiedCoords.some(o => o.row === coord.row && o.col === coord.col)) {
+                    valid = false;
+                    reason = "Piece overlaps with already placed pieces";
+                    break;
+                }
+
+                // Check if covering target
+                if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
+                    valid = false;
+                    reason = "Piece covers the target date";
+                    break;
+                }
+            }
+
+            if (valid) {
+                // Place the piece
+                const piece = piecesData[selectedPieceIndex];
+                const pieceColor = pieceColors[selectedPieceIndex];
+
+                absoluteCoords.forEach(coord => {
+                    occupiedCoords.push({
+                        ...coord,
+                        color: pieceColor,
+                        pieceName: piece.name,
+                        pieceIndex: selectedPieceIndex,
+                        orientationIndex: currentOrientationIndex
+                    });
+                });
+
+                usedPieces.add(piece.name);
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                allOrientations = [];
+                currentOrientationIndex = 0;
+
+                renderBoard();
+                renderPieces();
+                checkWin();
+            } else {
+                // Invalid placement - piece disappears (removed)
+                selectedPieceIndex = null;
+                selectedPieceCoords = [];
+                renderBoard();
+                renderPieces();
+            }
+        }
+
+        // Add global event listeners for drag system
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchmove', handleMouseMove, { passive: false });
+        document.addEventListener('touchend', handleMouseUp);
 
         // Initialize on load
         init();

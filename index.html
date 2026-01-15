@@ -608,13 +608,13 @@
 
             .board {
                 padding: 2px;
-                gap: 1px;
+                gap: 0.5px;
             }
 
             .cell {
-                width: 26px;
-                height: 26px;
-                font-size: 7px;
+                width: 24px;
+                height: 24px;
+                font-size: 6px;
             }
 
             .pieces-list {
@@ -622,7 +622,7 @@
             }
 
             .piece-grid {
-                gap: 1px;
+                gap: 0.5px;
             }
 
             .piece-cell {
@@ -633,6 +633,38 @@
             .date-selector button {
                 padding: 8px 12px;
                 font-size: 13px;
+            }
+        }
+
+        /* Very narrow phones (less than 350px) */
+        @media (max-width: 350px) {
+            body {
+                padding: 3px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+
+            h1 {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .board {
+                padding: 1px;
+                gap: 0.5px;
+            }
+
+            .cell {
+                width: 22px;
+                height: 22px;
+                font-size: 6px;
+            }
+
+            .piece-cell {
+                width: 10px;
+                height: 10px;
             }
         }
     </style>
@@ -1287,7 +1319,16 @@ Sep Oct Nov Dec 28 29 30 14`;
         function renderBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
-            board.style.gridTemplateColumns = `repeat(${boardData.width}, 50px)`;
+
+            // Get actual cell size from CSS (responsive)
+            const tempCell = document.createElement('div');
+            tempCell.className = 'cell';
+            tempCell.style.visibility = 'hidden';
+            board.appendChild(tempCell);
+            const cellSize = tempCell.offsetWidth || 50;
+            board.removeChild(tempCell);
+
+            board.style.gridTemplateColumns = `repeat(${boardData.width}, ${cellSize}px)`;
 
             for (let row = 0; row < boardData.height; row++) {
                 for (let col = 0; col < boardData.width; col++) {
@@ -2041,12 +2082,18 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function updateDragPreview(x, y) {
+            // Use the same offset as the drag visual so preview appears at the same location
+            const offsetY = 80;
+            const previewX = x;
+            const previewY = y - offsetY;
+
             // Hide the drag element temporarily to see what's underneath
             if (dragPieceElement) {
                 dragPieceElement.style.display = 'none';
             }
 
-            const elemBelow = document.elementFromPoint(x, y);
+            // Check what's at the offset position (where the visual element appears)
+            const elemBelow = document.elementFromPoint(previewX, previewY);
 
             // Clear any existing preview
             clearDragPreview();
@@ -2116,6 +2163,11 @@ Sep Oct Nov Dec 28 29 30 14`;
             const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
             const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
 
+            // Use the same offset as the drag visual and preview
+            const offsetY = 80;
+            const dropX = x;
+            const dropY = y - offsetY;
+
             // Clear the preview
             clearDragPreview();
 
@@ -2124,8 +2176,8 @@ Sep Oct Nov Dec 28 29 30 14`;
                 dragPieceElement.style.display = 'none';
             }
 
-            // Find what element is under the drop point
-            const elemBelow = document.elementFromPoint(x, y);
+            // Find what element is under the drop point (at offset position)
+            const elemBelow = document.elementFromPoint(dropX, dropY);
 
             // Show drag element again (will be removed in handleMouseUp)
             if (dragPieceElement) {

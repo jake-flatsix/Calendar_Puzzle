@@ -998,8 +998,6 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Increment the orientation index
             pieceOrientations[index] = ((pieceOrientations[index] || 0) + 1) % orientations.length;
 
-            console.log(`Rotated piece ${index} to orientation ${pieceOrientations[index]}`);
-
             // Re-render to show the new orientation
             renderPieces();
         }
@@ -1414,11 +1412,16 @@ Sep Oct Nov Dec 28 29 30 14`;
         function handleMouseMove(e) {
             if (!isDragging || !dragPieceElement) return;
 
-            const x = e.clientX || e.touches[0].clientX;
-            const y = e.clientY || e.touches[0].clientY;
+            e.preventDefault(); // Prevent scrolling on touch devices
+
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
 
             dragPieceElement.style.left = x + 'px';
             dragPieceElement.style.top = y + 'px';
+
+            // Update preview of where piece will be placed
+            updateDragPreview(x, y);
         }
 
         function handleMouseUp(e) {
@@ -1433,6 +1436,8 @@ Sep Oct Nov Dec 28 29 30 14`;
             if (isDragging) {
                 // Was dragging - try to drop
                 handleDrop(e);
+                // Clear any preview highlighting
+                clearDragPreview();
             } else if (holdDuration < dragThreshold && dragPieceIndex !== null && dragSourceType === 'sidebar') {
                 // Was a quick click on sidebar - rotate piece
                 rotatePieceInPlace(dragPieceIndex);
@@ -1452,12 +1457,97 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderPieces();
         }
 
+        function updateDragPreview(x, y) {
+            // Hide the drag element temporarily to see what's underneath
+            if (dragPieceElement) {
+                dragPieceElement.style.display = 'none';
+            }
+
+            const elemBelow = document.elementFromPoint(x, y);
+
+            // Clear any existing preview
+            clearDragPreview();
+
+            if (!elemBelow) {
+                // Not over anything - show drag element
+                if (dragPieceElement) {
+                    dragPieceElement.style.display = '';
+                }
+                return;
+            }
+
+            const cell = elemBelow.closest('.cell');
+            if (!cell || cell.dataset.row === undefined) {
+                // Not over board - show drag element
+                if (dragPieceElement) {
+                    dragPieceElement.style.display = '';
+                }
+                return;
+            }
+
+            // Over the board - keep drag element hidden and show preview
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+
+            // Calculate where piece would be placed
+            const absoluteCoords = selectedPieceCoords.map(c => ({
+                row: row + c.row,
+                col: col + c.col
+            }));
+
+            // Check if valid
+            const isValid = checkValidPlacement(absoluteCoords);
+
+            // Get the piece color
+            const pieceColor = pieceColors[selectedPieceIndex];
+
+            // Highlight the cells with the actual piece color
+            absoluteCoords.forEach(coord => {
+                const targetCell = document.querySelector(`.cell[data-row="${coord.row}"][data-col="${coord.col}"]`);
+                if (targetCell) {
+                    if (isValid) {
+                        targetCell.classList.add('preview');
+                        targetCell.style.backgroundColor = pieceColor;
+                        targetCell.style.opacity = '0.7';
+                    } else {
+                        targetCell.classList.add('preview-invalid');
+                    }
+                }
+            });
+        }
+
+        function clearDragPreview() {
+            // Clear preview styles (only clear backgroundColor/opacity from valid preview cells)
+            document.querySelectorAll('.cell.preview').forEach(cell => {
+                cell.classList.remove('preview');
+                cell.style.backgroundColor = '';
+                cell.style.opacity = '';
+            });
+            // Just remove the class from invalid preview cells (keep their occupied colors)
+            document.querySelectorAll('.cell.preview-invalid').forEach(cell => {
+                cell.classList.remove('preview-invalid');
+            });
+        }
+
         function handleDrop(e) {
-            const x = e.clientX || e.changedTouches[0].clientX;
-            const y = e.clientY || e.changedTouches[0].clientY;
+            const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+            const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+
+            // Clear the preview
+            clearDragPreview();
+
+            // Hide drag element to see what's underneath
+            if (dragPieceElement) {
+                dragPieceElement.style.display = 'none';
+            }
 
             // Find what element is under the drop point
             const elemBelow = document.elementFromPoint(x, y);
+
+            // Show drag element again (will be removed in handleMouseUp)
+            if (dragPieceElement) {
+                dragPieceElement.style.display = '';
+            }
 
             if (!elemBelow) {
                 // Dropped off screen - remove piece
@@ -1494,28 +1584,24 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             // Validate placement locally
             let valid = true;
-            let reason = "";
 
             for (const coord of absoluteCoords) {
                 // Check if on board
                 const coordKey = `${coord.row},${coord.col}`;
                 if (!boardData.grid.hasOwnProperty(coordKey)) {
                     valid = false;
-                    reason = "Piece extends outside board boundaries";
                     break;
                 }
 
                 // Check if occupied
                 if (occupiedCoords.some(o => o.row === coord.row && o.col === coord.col)) {
                     valid = false;
-                    reason = "Piece overlaps with already placed pieces";
                     break;
                 }
 
                 // Check if covering target
                 if (targetCoords.some(t => t.row === coord.row && t.col === coord.col)) {
                     valid = false;
-                    reason = "Piece covers the target date";
                     break;
                 }
             }

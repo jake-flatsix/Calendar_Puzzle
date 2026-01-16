@@ -2563,6 +2563,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Start dragging immediately on ANY movement for board pieces
                 // No threshold check - more responsive on mobile
                 console.log('Converting hold to drag on first movement');
+                e.preventDefault();
 
                 // Convert to drag
                 isHolding = false;
@@ -2579,28 +2580,43 @@ Sep Oct Nov Dec 28 29 30 14`;
                 currentOrientationIndex = boardPieceInfo.storedOrientationIndex !== undefined ? boardPieceInfo.storedOrientationIndex : 0;
                 selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
 
-                console.log('Creating drag element at:', x, y);
-
-                // Create drag visual at current position
-                createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y, 'board');
-
-                // IMPORTANT: Set isDragging AFTER creating drag element
+                // Set isDragging immediately so subsequent moves are tracked
                 isDragging = true;
 
-                // Don't renderBoard() here - it modifies DOM during touch gesture which breaks event tracking
-                // Board will be rendered when drag completes in handleMouseUp
+                console.log('Creating drag element at:', x, y);
+
+                // Defer drag visual creation to next frame to avoid breaking touch tracking
+                const pieceIndex = boardPieceInfo.pieceIndex;
+                const capturedX = x;
+                const capturedY = y;
+                const capturedCoords = selectedPieceCoords;
+                const capturedColor = pieceColors[pieceIndex];
 
                 boardPieceInfo = null;
+
+                requestAnimationFrame(() => {
+                    if (!dragPieceElement) {
+                        createDragElement(capturedCoords, capturedColor, capturedX, capturedY, 'board');
+                    }
+                    console.log('Board piece drag visual created (deferred)');
+                });
+
                 console.log('Board piece drag started, isDragging:', isDragging);
-                // DON'T return - fall through to update position on this first move event
+                return; // Don't process this first move event, let next move update position
             }
 
             // Handle active drag
-            if (!isDragging || !dragPieceElement) {
+            if (!isDragging) {
                 return;
             }
 
             e.preventDefault(); // Prevent scrolling on touch devices
+
+            // Only update position if drag element exists (it might be deferred)
+            if (!dragPieceElement) {
+                console.log('handleMouseMove - waiting for drag element creation');
+                return;
+            }
 
             console.log('handleMouseMove - moving drag element to:', x, y);
 

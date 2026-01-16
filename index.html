@@ -2506,8 +2506,8 @@ Sep Oct Nov Dec 28 29 30 14`;
             // IMPORTANT: Set isDragging AFTER creating drag element so handleMouseMove works
             isDragging = true;
 
-            renderBoard();
-            // Don't render pieces here to avoid duplicate events
+            // Don't renderBoard() here - it modifies DOM during touch gesture which breaks event tracking
+            // Board will be rendered when drag completes in handleMouseUp
 
             isProcessingDrag = false;
             console.log('Grab and drag started successfully, isDragging:', isDragging);
@@ -2563,11 +2563,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Start dragging immediately on ANY movement for board pieces
                 // No threshold check - more responsive on mobile
                 console.log('Converting hold to drag on first movement');
-                e.preventDefault();
 
                 // Convert to drag
                 isHolding = false;
-                isProcessingDrag = true;
 
                 // Remove piece from board
                 occupiedCoords = occupiedCoords.filter(o => o.pieceName !== boardPieceInfo.pieceName);
@@ -2589,12 +2587,12 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // IMPORTANT: Set isDragging AFTER creating drag element
                 isDragging = true;
 
-                renderBoard();
+                // Don't renderBoard() here - it modifies DOM during touch gesture which breaks event tracking
+                // Board will be rendered when drag completes in handleMouseUp
 
-                isProcessingDrag = false;
                 boardPieceInfo = null;
                 console.log('Board piece drag started, isDragging:', isDragging);
-                return;
+                // DON'T return - fall through to update position on this first move event
             }
 
             // Handle active drag

@@ -1529,6 +1529,8 @@ Sep Oct Nov Dec 28 29 30 14`;
         let dragPieceIndex = null; // Track which piece is being interacted with
         let dragStartPosition = null; // Track initial touch position
         let isProcessingDrag = false; // Prevent duplicate drag starts
+        let isHolding = false; // Track if user is holding (before drag starts)
+        let boardPieceInfo = null; // Store board piece info for delayed drag conversion
 
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
@@ -2407,7 +2409,7 @@ Sep Oct Nov Dec 28 29 30 14`;
 
         function handleBoardMouseDown(e, row, col) {
             // Prevent duplicate events during active drag
-            if (isProcessingDrag || isDragging) {
+            if (isProcessingDrag || isDragging || isHolding) {
                 console.log('Ignoring duplicate board mousedown during drag');
                 return;
             }
@@ -2427,21 +2429,14 @@ Sep Oct Nov Dec 28 29 30 14`;
             const y = e.clientY || e.pageY || (e.touches && e.touches[0].pageY);
             dragStartPosition = { x, y };
 
-            // Store board piece info for later
-            window.pendingBoardDrag = {
-                row, col, pieceName, pieceIndex, e
+            // Store board piece info - will convert to drag on first move
+            isHolding = true;
+            boardPieceInfo = {
+                row, col, pieceName, pieceIndex,
+                storedOrientationIndex: clickedCell.orientationIndex
             };
 
-            // Start drag for pieces on board after hold threshold
-            dragTimer = setTimeout(() => {
-                console.log('Board hold detected, starting grab and drag');
-                grabAndStartDrag(window.pendingBoardDrag.e,
-                                window.pendingBoardDrag.row,
-                                window.pendingBoardDrag.col,
-                                window.pendingBoardDrag.pieceName,
-                                window.pendingBoardDrag.pieceIndex);
-                window.pendingBoardDrag = null;
-            }, dragThreshold);
+            console.log('Board hold started, waiting for movement to start drag');
         }
 
         function startDrag(e, index, source) {
@@ -2552,14 +2547,55 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleMouseMove(e) {
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+            // Check if we're holding a board piece and should convert to drag
+            if (isHolding && !isDragging && boardPieceInfo) {
+                const holdDuration = Date.now() - dragStartTime;
+                if (holdDuration >= dragThreshold) {
+                    console.log('Converting hold to drag after', holdDuration, 'ms');
+                    e.preventDefault();
+
+                    // Convert to drag
+                    isHolding = false;
+                    isProcessingDrag = true;
+
+                    // Remove piece from board
+                    occupiedCoords = occupiedCoords.filter(o => o.pieceName !== boardPieceInfo.pieceName);
+                    usedPieces.delete(boardPieceInfo.pieceName);
+
+                    selectedPieceIndex = boardPieceInfo.pieceIndex;
+                    dragSourceType = 'board';
+
+                    // Set up piece with its stored orientation
+                    allOrientations = generateAllOrientations(piecesData[boardPieceInfo.pieceIndex].coords);
+                    currentOrientationIndex = boardPieceInfo.storedOrientationIndex !== undefined ? boardPieceInfo.storedOrientationIndex : 0;
+                    selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
+
+                    console.log('Creating drag element at:', x, y);
+
+                    // Create drag visual at current position
+                    createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y);
+
+                    // IMPORTANT: Set isDragging AFTER creating drag element
+                    isDragging = true;
+
+                    renderBoard();
+
+                    isProcessingDrag = false;
+                    boardPieceInfo = null;
+                    console.log('Board piece drag started, isDragging:', isDragging);
+                    return;
+                }
+            }
+
+            // Handle active drag
             if (!isDragging || !dragPieceElement) {
                 return;
             }
 
             e.preventDefault(); // Prevent scrolling on touch devices
-
-            const x = e.clientX || (e.touches && e.touches[0].clientX);
-            const y = e.clientY || (e.touches && e.touches[0].clientY);
 
             console.log('handleMouseMove - moving drag element to:', x, y);
 
@@ -2573,7 +2609,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleMouseUp(e) {
-            console.log('handleMouseUp called, isDragging:', isDragging, 'dragPieceElement:', !!dragPieceElement);
+            console.log('handleMouseUp called, isDragging:', isDragging, 'isHolding:', isHolding, 'dragPieceElement:', !!dragPieceElement);
 
             // Clear drag timer
             if (dragTimer) {
@@ -2594,6 +2630,10 @@ Sep Oct Nov Dec 28 29 30 14`;
                 handleDrop(e);
                 // Clear any preview highlighting
                 clearDragPreview();
+            } else if (isHolding && boardPieceInfo) {
+                // Was holding a board piece but didn't move (quick click for rotation)
+                console.log('Quick click on board piece - rotating');
+                rotatePieceOnBoard(boardPieceInfo.pieceIndex);
             } else if (holdDuration > 0 && holdDuration < dragThreshold && dragPieceIndex !== null) {
                 // Was a quick click (rotation)
                 console.log('Quick click detected for rotation');
@@ -2616,11 +2656,12 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Reset all drag state
             isDragging = false;
             isProcessingDrag = false;
+            isHolding = false;
             dragStartTime = 0;
             dragSourceType = null;
             dragPieceIndex = null;
             dragStartPosition = null;
-            window.pendingBoardDrag = null;
+            boardPieceInfo = null;
 
             renderBoard();
             renderPieces();

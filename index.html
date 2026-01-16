@@ -1007,6 +1007,12 @@
                         <!-- Days 1-31 -->
                     </select>
                 </div>
+                <div class="date-selector-group">
+                    <label>Year</label>
+                    <select id="year-select">
+                        <!-- Years populated by JS -->
+                    </select>
+                </div>
             </div>
             <div class="modal-buttons">
                 <button class="modal-button primary" id="modal-set-date">Set Date</button>
@@ -1530,6 +1536,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         let dragPieceIndex = null; // Track which piece is being interacted with
         let dragStartPosition = null; // Track initial touch position
         let isProcessingDrag = false; // Prevent duplicate drag starts
+        let isTouchDrag = false; // Track if current drag is from touch (vs mouse)
 
         // Color palette for pieces (10 distinct colors)
         const pieceColors = [
@@ -1674,6 +1681,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             });
 
             // Sync date input when dropdowns change
+            document.getElementById('year-select').addEventListener('change', syncDropdownsToDateInput);
             document.getElementById('month-select').addEventListener('change', syncDropdownsToDateInput);
             document.getElementById('day-select').addEventListener('change', syncDropdownsToDateInput);
 
@@ -1698,11 +1706,12 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function syncDropdownsToDateInput() {
+            const yearSelect = document.getElementById('year-select');
             const monthSelect = document.getElementById('month-select');
             const daySelect = document.getElementById('day-select');
             const modalInput = document.getElementById('modal-date-input');
 
-            const year = new Date().getFullYear();
+            const year = yearSelect.value || new Date().getFullYear();
             const month = String(monthSelect.value).padStart(2, '0');
             const day = String(daySelect.value).padStart(2, '0');
             modalInput.value = `${year}-${month}-${day}`;
@@ -1721,6 +1730,19 @@ Sep Oct Nov Dec 28 29 30 14`;
                 }
             }
 
+            // Populate year dropdown (current year ± 5 years)
+            const yearSelect = document.getElementById('year-select');
+            if (yearSelect.options.length === 0) {
+                const currentYear = new Date().getFullYear();
+                for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    yearSelect.appendChild(option);
+                }
+                yearSelect.value = currentYear;
+            }
+
             // Sync with current date
             const modalInput = document.getElementById('modal-date-input');
             const desktopInput = document.getElementById('date-input');
@@ -1730,6 +1752,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             if (desktopInput.value) {
                 const parts = desktopInput.value.split('-');
                 if (parts.length === 3) {
+                    document.getElementById('year-select').value = parseInt(parts[0], 10);
                     document.getElementById('month-select').value = parseInt(parts[1], 10);
                     document.getElementById('day-select').value = parseInt(parts[2], 10);
                 }
@@ -1757,6 +1780,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         function setDateFromModal() {
             const modalInput = document.getElementById('modal-date-input');
             const desktopInput = document.getElementById('date-input');
+            const yearSelect = document.getElementById('year-select');
             const monthSelect = document.getElementById('month-select');
             const daySelect = document.getElementById('day-select');
 
@@ -1765,7 +1789,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                 desktopInput.value = modalInput.value;
             } else {
                 // Use dropdown values
-                const year = new Date().getFullYear();
+                const year = yearSelect.value || new Date().getFullYear();
                 const month = String(monthSelect.value).padStart(2, '0');
                 const day = String(daySelect.value).padStart(2, '0');
                 desktopInput.value = `${year}-${month}-${day}`;
@@ -2395,6 +2419,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             dragStartTime = Date.now();
             dragSourceType = source;
             dragPieceIndex = index;
+            isTouchDrag = !!(e.touches && e.touches.length > 0); // Detect touch vs mouse
             const x = e.clientX || e.pageX;
             const y = e.clientY || e.pageY;
             dragStartPosition = { x, y };
@@ -2425,6 +2450,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             dragStartTime = Date.now();
             dragSourceType = 'board';
             dragPieceIndex = pieceIndex;
+            isTouchDrag = !!(e.touches && e.touches.length > 0); // Detect touch vs mouse
             const x = e.clientX || e.pageX || (e.touches && e.touches[0].clientX);
             const y = e.clientY || e.pageY || (e.touches && e.touches[0].pageY);
             dragStartPosition = { x, y };
@@ -2517,8 +2543,12 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function calculateSmartOffset(coords, sourceType) {
-            // For sidebar pieces, offset from the BOTTOM so piece appears above finger
-            // For board pieces, use minimal offset since user is touching the piece directly
+            // On desktop (mouse), use minimal offset for precision
+            if (!isTouchDrag) {
+                return 0; // No offset needed for mouse - cursor is precise
+            }
+
+            // On mobile (touch), offset so piece appears above finger
             if (sourceType === 'board') {
                 // For board pieces, use small fixed offset to keep piece just above finger
                 // The translate(-50%, -50%) will center it, so just need small clearance
@@ -2623,6 +2653,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Reset all drag state
             isDragging = false;
             isProcessingDrag = false;
+            isTouchDrag = false;
             dragStartTime = 0;
             dragSourceType = null;
             dragPieceIndex = null;

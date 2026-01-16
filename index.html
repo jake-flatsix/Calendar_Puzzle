@@ -2423,14 +2423,24 @@ Sep Oct Nov Dec 28 29 30 14`;
             dragStartTime = Date.now();
             dragSourceType = 'board';
             dragPieceIndex = pieceIndex;
-            const x = e.clientX || e.pageX;
-            const y = e.clientY || e.pageY;
+            const x = e.clientX || e.pageX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || e.pageY || (e.touches && e.touches[0].pageY);
             dragStartPosition = { x, y };
+
+            // Store board piece info for later
+            window.pendingBoardDrag = {
+                row, col, pieceName, pieceIndex, e
+            };
 
             // Start drag for pieces on board after hold threshold
             dragTimer = setTimeout(() => {
                 console.log('Board hold detected, starting grab and drag');
-                grabAndStartDrag(e, row, col, pieceName, pieceIndex);
+                grabAndStartDrag(window.pendingBoardDrag.e,
+                                window.pendingBoardDrag.row,
+                                window.pendingBoardDrag.col,
+                                window.pendingBoardDrag.pieceName,
+                                window.pendingBoardDrag.pieceIndex);
+                window.pendingBoardDrag = null;
             }, dragThreshold);
         }
 
@@ -2480,7 +2490,6 @@ Sep Oct Nov Dec 28 29 30 14`;
             occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
             usedPieces.delete(pieceName);
 
-            isDragging = true;
             selectedPieceIndex = pieceIndex;
             dragSourceType = 'board';
 
@@ -2489,14 +2498,23 @@ Sep Oct Nov Dec 28 29 30 14`;
             currentOrientationIndex = storedOrientationIndex !== undefined ? storedOrientationIndex : 0;
             selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
 
+            // Get current cursor position (not the stale event)
+            const x = e.clientX || e.pageX || (e.touches && e.touches[0] && e.touches[0].clientX) || dragStartPosition.x;
+            const y = e.clientY || e.pageY || (e.touches && e.touches[0] && e.touches[0].pageY) || dragStartPosition.y;
+
+            console.log('Creating drag element at:', x, y);
+
             // Create drag visual
-            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], e.clientX || e.pageX, e.clientY || e.pageY);
+            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], x, y);
+
+            // IMPORTANT: Set isDragging AFTER creating drag element so handleMouseMove works
+            isDragging = true;
 
             renderBoard();
             // Don't render pieces here to avoid duplicate events
 
             isProcessingDrag = false;
-            console.log('Grab and drag started successfully');
+            console.log('Grab and drag started successfully, isDragging:', isDragging);
         }
 
         function calculateSmartOffset(coords) {
@@ -2534,12 +2552,16 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleMouseMove(e) {
-            if (!isDragging || !dragPieceElement) return;
+            if (!isDragging || !dragPieceElement) {
+                return;
+            }
 
             e.preventDefault(); // Prevent scrolling on touch devices
 
             const x = e.clientX || (e.touches && e.touches[0].clientX);
             const y = e.clientY || (e.touches && e.touches[0].clientY);
+
+            console.log('handleMouseMove - moving drag element to:', x, y);
 
             // Calculate smart offset based on piece geometry
             const offsetY = calculateSmartOffset(selectedPieceCoords);
@@ -2551,7 +2573,7 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function handleMouseUp(e) {
-            console.log('handleMouseUp called, isDragging:', isDragging);
+            console.log('handleMouseUp called, isDragging:', isDragging, 'dragPieceElement:', !!dragPieceElement);
 
             // Clear drag timer
             if (dragTimer) {
@@ -2566,14 +2588,14 @@ Sep Oct Nov Dec 28 29 30 14`;
                 console.log('holdDuration:', holdDuration, 'ms');
             }
 
-            if (isDragging) {
+            if (isDragging && dragPieceElement) {
                 // Was dragging - try to drop
-                console.log('Dropping piece');
+                console.log('Dropping piece at mouse up');
                 handleDrop(e);
                 // Clear any preview highlighting
                 clearDragPreview();
             } else if (holdDuration > 0 && holdDuration < dragThreshold && dragPieceIndex !== null) {
-                // Was a quick click
+                // Was a quick click (rotation)
                 console.log('Quick click detected for rotation');
                 if (dragSourceType === 'sidebar') {
                     // Rotate piece in sidebar
@@ -2584,8 +2606,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 }
             }
 
-            // Clean up
+            // Clean up drag element
             if (dragPieceElement) {
+                console.log('Removing drag element');
                 dragPieceElement.remove();
                 dragPieceElement = null;
             }
@@ -2597,7 +2620,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             dragSourceType = null;
             dragPieceIndex = null;
             dragStartPosition = null;
+            window.pendingBoardDrag = null;
 
+            renderBoard();
             renderPieces();
         }
 

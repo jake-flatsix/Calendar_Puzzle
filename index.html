@@ -1845,7 +1845,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                             });
                             cell.addEventListener('touchstart', (e) => {
                                 e.preventDefault();
-                                e.stopPropagation();
+                                // DON'T stop propagation - we need touchend to bubble up to global listener
                                 // Create a synthetic event object with touch coordinates
                                 const touch = e.touches[0];
                                 const syntheticEvent = {
@@ -1853,6 +1853,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                                     clientY: touch.clientY,
                                     pageX: touch.pageX,
                                     pageY: touch.pageY,
+                                    touches: e.touches,
                                     preventDefault: () => e.preventDefault(),
                                     stopPropagation: () => e.stopPropagation()
                                 };

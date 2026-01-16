@@ -2552,42 +2552,41 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             // Check if we're holding a board piece and should convert to drag
             if (isHolding && !isDragging && boardPieceInfo) {
-                const holdDuration = Date.now() - dragStartTime;
-                if (holdDuration >= dragThreshold) {
-                    console.log('Converting hold to drag after', holdDuration, 'ms');
-                    e.preventDefault();
+                // Start dragging immediately on ANY movement for board pieces
+                // No threshold check - more responsive on mobile
+                console.log('Converting hold to drag on first movement');
+                e.preventDefault();
 
-                    // Convert to drag
-                    isHolding = false;
-                    isProcessingDrag = true;
+                // Convert to drag
+                isHolding = false;
+                isProcessingDrag = true;
 
-                    // Remove piece from board
-                    occupiedCoords = occupiedCoords.filter(o => o.pieceName !== boardPieceInfo.pieceName);
-                    usedPieces.delete(boardPieceInfo.pieceName);
+                // Remove piece from board
+                occupiedCoords = occupiedCoords.filter(o => o.pieceName !== boardPieceInfo.pieceName);
+                usedPieces.delete(boardPieceInfo.pieceName);
 
-                    selectedPieceIndex = boardPieceInfo.pieceIndex;
-                    dragSourceType = 'board';
+                selectedPieceIndex = boardPieceInfo.pieceIndex;
+                dragSourceType = 'board';
 
-                    // Set up piece with its stored orientation
-                    allOrientations = generateAllOrientations(piecesData[boardPieceInfo.pieceIndex].coords);
-                    currentOrientationIndex = boardPieceInfo.storedOrientationIndex !== undefined ? boardPieceInfo.storedOrientationIndex : 0;
-                    selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
+                // Set up piece with its stored orientation
+                allOrientations = generateAllOrientations(piecesData[boardPieceInfo.pieceIndex].coords);
+                currentOrientationIndex = boardPieceInfo.storedOrientationIndex !== undefined ? boardPieceInfo.storedOrientationIndex : 0;
+                selectedPieceCoords = JSON.parse(JSON.stringify(allOrientations[currentOrientationIndex % allOrientations.length]));
 
-                    console.log('Creating drag element at:', x, y);
+                console.log('Creating drag element at:', x, y);
 
-                    // Create drag visual at current position
-                    createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y);
+                // Create drag visual at current position
+                createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y);
 
-                    // IMPORTANT: Set isDragging AFTER creating drag element
-                    isDragging = true;
+                // IMPORTANT: Set isDragging AFTER creating drag element
+                isDragging = true;
 
-                    renderBoard();
+                renderBoard();
 
-                    isProcessingDrag = false;
-                    boardPieceInfo = null;
-                    console.log('Board piece drag started, isDragging:', isDragging);
-                    return;
-                }
+                isProcessingDrag = false;
+                boardPieceInfo = null;
+                console.log('Board piece drag started, isDragging:', isDragging);
+                return;
             }
 
             // Handle active drag
@@ -2631,8 +2630,8 @@ Sep Oct Nov Dec 28 29 30 14`;
                 // Clear any preview highlighting
                 clearDragPreview();
             } else if (isHolding && boardPieceInfo) {
-                // Was holding a board piece but didn't move (quick click for rotation)
-                console.log('Quick click on board piece - rotating');
+                // Was holding a board piece but didn't move - rotate it
+                console.log('No movement detected - rotating board piece');
                 rotatePieceOnBoard(boardPieceInfo.pieceIndex);
             } else if (holdDuration > 0 && holdDuration < dragThreshold && dragPieceIndex !== null) {
                 // Was a quick click (rotation)

@@ -1349,6 +1349,13 @@ Sep Oct Nov Dec 28 29 30 14`;
                 const state = new GameState(this.board, targetCoords);
                 const unusedPieces = [...this.pieces];
 
+                // Randomize piece order to vary which piece is placed first
+                // Fisher-Yates shuffle
+                for (let i = unusedPieces.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [unusedPieces[i], unusedPieces[j]] = [unusedPieces[j], unusedPieces[i]];
+                }
+
                 if (this._backtrack(state, unusedPieces)) {
                     return state;
                 }

@@ -2315,26 +2315,36 @@ Sep Oct Nov Dec 28 29 30 14`;
                 return;
             }
 
-            // If this is the first hint, clear any user-placed pieces
-            if (hintIndex === 0 && occupiedCoords.length > 0) {
-                occupiedCoords = [];
-                usedPieces.clear();
-                selectedPieceIndex = null;
-                selectedPieceCoords = [];
-                allOrientations = [];
-                currentOrientationIndex = 0;
-            }
-
             // Check if we've already applied all hints
             if (hintIndex >= solution.placements.length) {
                 alert('All pieces have been placed!');
                 return;
             }
 
+            // Clear board and rebuild from hints only (removes any user-placed pieces)
+            occupiedCoords = [];
+            usedPieces.clear();
+
+            // Re-apply all previous hints (0 to hintIndex-1)
+            for (let i = 0; i < hintIndex; i++) {
+                const prevPlacement = solution.placements[i];
+                const prevPieceIndex = piecesData.findIndex(p => p.name === prevPlacement.piece_name);
+                const prevPieceColor = pieceColors[prevPieceIndex];
+
+                for (const coord of prevPlacement.coords) {
+                    occupiedCoords.push({
+                        ...coord,
+                        color: prevPieceColor,
+                        pieceName: prevPlacement.piece_name,
+                        pieceIndex: prevPieceIndex,
+                        orientationIndex: 0
+                    });
+                }
+                usedPieces.add(prevPlacement.piece_name);
+            }
+
             // Apply the next placement from the solution
             const placement = solution.placements[hintIndex];
-
-            // Find piece index to get the color
             const pieceIndex = piecesData.findIndex(p => p.name === placement.piece_name);
             const pieceColor = pieceColors[pieceIndex];
 

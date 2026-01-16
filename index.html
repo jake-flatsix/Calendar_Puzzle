@@ -2501,7 +2501,7 @@ Sep Oct Nov Dec 28 29 30 14`;
             console.log('Creating drag element at:', x, y);
 
             // Create drag visual
-            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], x, y);
+            createDragElement(selectedPieceCoords, pieceColors[pieceIndex], x, y, 'board');
 
             // IMPORTANT: Set isDragging AFTER creating drag element so handleMouseMove works
             isDragging = true;
@@ -2513,20 +2513,23 @@ Sep Oct Nov Dec 28 29 30 14`;
             console.log('Grab and drag started successfully, isDragging:', isDragging);
         }
 
-        function calculateSmartOffset(coords) {
-            // Calculate offset from the BOTTOM of the piece
-            // This ensures the piece appears above the finger, not blocked by it
+        function calculateSmartOffset(coords, sourceType) {
+            // For sidebar pieces, offset from the BOTTOM so piece appears above finger
+            // For board pieces, use minimal offset since user is touching the piece directly
+            if (sourceType === 'board') {
+                // For board pieces, use small fixed offset to keep piece just above finger
+                // The translate(-50%, -50%) will center it, so just need small clearance
+                return 40; // Just enough to clear the finger
+            }
+
+            // For sidebar pieces, calculate offset from bottom of piece
             const maxRow = Math.max(...coords.map(c => c.row));
-
-            // Use smaller offset for drag visual (20px base * 1.5 scale = 30px per cell)
-            // Add minimal padding to keep piece just above finger
             const cellHeight = 30; // 20px base * 1.5 scale
-            const offsetY = (maxRow + 1) * cellHeight + 30; // Reduced padding
-
+            const offsetY = (maxRow + 1) * cellHeight + 30;
             return offsetY;
         }
 
-        function createDragElement(coords, color, x, y) {
+        function createDragElement(coords, color, x, y, sourceType = 'sidebar') {
             // Remove any existing drag element
             if (dragPieceElement) {
                 dragPieceElement.remove();
@@ -2535,16 +2538,20 @@ Sep Oct Nov Dec 28 29 30 14`;
             const grid = createPieceGrid(coords, color);
             grid.classList.add('drag-piece');
 
-            // Calculate smart offset from bottom of piece
-            // This works for both sidebar and board pieces
-            const offsetY = calculateSmartOffset(coords);
+            // Calculate offset based on source type
+            const offsetY = calculateSmartOffset(coords, sourceType);
+            const finalY = y - offsetY;
+
+            console.log(`createDragElement: source=${sourceType}, touch(${x}, ${y}), offsetY=${offsetY}, final position(${x}, ${finalY}), window height=${window.innerHeight}`);
 
             grid.style.left = x + 'px';
-            grid.style.top = (y - offsetY) + 'px';
+            grid.style.top = finalY + 'px';
             grid.style.transform = 'translate(-50%, -50%) scale(1.5)';
 
             document.body.appendChild(grid);
             dragPieceElement = grid;
+
+            console.log(`Drag element created, bounding rect:`, dragPieceElement.getBoundingClientRect());
         }
 
         function handleMouseMove(e) {
@@ -2577,7 +2584,7 @@ Sep Oct Nov Dec 28 29 30 14`;
                 console.log('Creating drag element at:', x, y);
 
                 // Create drag visual at current position
-                createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y);
+                createDragElement(selectedPieceCoords, pieceColors[boardPieceInfo.pieceIndex], x, y, 'board');
 
                 // IMPORTANT: Set isDragging AFTER creating drag element
                 isDragging = true;
@@ -2599,8 +2606,8 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             console.log('handleMouseMove - moving drag element to:', x, y);
 
-            // Calculate smart offset based on piece geometry
-            const offsetY = calculateSmartOffset(selectedPieceCoords);
+            // Calculate smart offset based on piece geometry and source type
+            const offsetY = calculateSmartOffset(selectedPieceCoords, dragSourceType);
             dragPieceElement.style.left = x + 'px';
             dragPieceElement.style.top = (y - offsetY) + 'px';
 

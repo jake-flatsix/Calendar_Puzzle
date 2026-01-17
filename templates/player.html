@@ -1880,29 +1880,13 @@ Sep Oct Nov Dec 28 29 30 14`;
                 return;
             }
 
-            // Reset counter display
-            document.getElementById('solution-counter').style.display = 'none';
-            document.getElementById('solution-count').textContent = '0';
-
-            // Reset count button
-            const countButton = document.getElementById('modal-count');
-            countButton.disabled = false;
-            countButton.textContent = 'Count Solutions';
-
+            // Don't reset anything - preserve state from previous counts
             document.getElementById('solve-modal').classList.add('visible');
         }
 
         function closeSolveModal() {
             document.getElementById('solve-modal').classList.remove('visible');
-
-            // Reset counter display when closing
-            document.getElementById('solution-counter').style.display = 'none';
-            document.getElementById('solution-count').textContent = '0';
-
-            // Reset count button
-            const countButton = document.getElementById('modal-count');
-            countButton.disabled = false;
-            countButton.textContent = 'Count Solutions';
+            // Don't reset anything - preserve state so user can reopen and see the count
         }
 
         function clearSolutionCount() {

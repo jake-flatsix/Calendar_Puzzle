@@ -396,6 +396,15 @@
             background: #2563eb;
         }
 
+        .modal-button.secondary {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .modal-button.secondary:active {
+            background: #7c3aed;
+        }
+
         .modal-date-input {
             width: 100%;
             padding: 12px;
@@ -1003,9 +1012,13 @@
                 <button class="modal-button warning" id="modal-hint">Hint (Next Piece)</button>
                 <button class="modal-button success" id="modal-solve">Solve Puzzle</button>
                 <button class="modal-button info" id="modal-count">Count Solutions</button>
+                <button class="modal-button secondary" id="modal-check-current">Check Current Layout</button>
             </div>
             <div id="solution-counter" style="display: none; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold; color: #667eea;">
                 Solutions found: <span id="solution-count">0</span>
+            </div>
+            <div id="current-layout-counter" style="display: none; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold; color: #10b981;">
+                From current layout: <span id="current-layout-count">0</span> possible solutions
             </div>
         </div>
     </div>
@@ -1341,9 +1354,10 @@ Sep Oct Nov Dec 28 29 30 14`;
                 return null;
             }
 
-            async countAllSolutions(targetCoords, updateCallback) {
-                const state = new GameState(this.board, targetCoords);
-                const unusedPieces = [...this.pieces];
+            async countAllSolutions(targetCoords, updateCallback, initialState = null, initialUnusedPieces = null) {
+                // Use provided state or create new one
+                const state = initialState || new GameState(this.board, targetCoords);
+                const unusedPieces = initialUnusedPieces || [...this.pieces];
 
                 // Store all unique solutions
                 const solutions = [];
@@ -1731,6 +1745,10 @@ Sep Oct Nov Dec 28 29 30 14`;
                 countSolutions();
                 // Don't close modal - keep it open to show counter
             });
+            addClickListener(document.getElementById('modal-check-current'), () => {
+                checkCurrentLayout();
+                // Don't close modal - keep it open to show result
+            });
             // Solution picker temporarily disabled
             // addClickListener(document.getElementById('show-solution-btn'), () => {
             //     showSelectedSolution();
@@ -1902,6 +1920,16 @@ Sep Oct Nov Dec 28 29 30 14`;
             const countButton = document.getElementById('modal-count');
             countButton.disabled = false;
             countButton.textContent = 'Count Solutions';
+
+            // Hide and reset current layout counter
+            document.getElementById('current-layout-counter').style.display = 'none';
+            document.getElementById('current-layout-count').textContent = '0';
+
+            // Reset check current button
+            const checkButton = document.getElementById('modal-check-current');
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check Current Layout';
+            checkButton.style.background = '#8b5cf6'; // Purple
         }
 
         function setDateFromModal() {
@@ -2386,6 +2414,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 document.getElementById('status').textContent = statusText;
             }
 
+            // Reset layout check since board was cleared
+            resetCurrentLayoutCheck();
+
             document.getElementById('status').classList.remove('solved');
             renderBoard();
             renderPieces();
@@ -2546,6 +2577,106 @@ Sep Oct Nov Dec 28 29 30 14`;
 
             // Close the modal
             closeSolveModal();
+        }
+
+        async function checkCurrentLayout() {
+            if (!targetCoords.length) {
+                alert('Please select a date first');
+                return;
+            }
+
+            // Show counter and reset to 0
+            const counterDisplay = document.getElementById('current-layout-counter');
+            const countSpan = document.getElementById('current-layout-count');
+            counterDisplay.style.display = 'block';
+            countSpan.textContent = '0';
+
+            // Disable button during counting
+            const checkButton = document.getElementById('modal-check-current');
+            checkButton.disabled = true;
+            checkButton.textContent = 'Checking...';
+
+            // Create solver if needed
+            if (!solver) {
+                const pieces = piecesData.map(p => new Piece(p.name, p.coords));
+                solver = new PuzzleSolver(boardData, pieces);
+            }
+
+            try {
+                // Build a GameState from current board state
+                const state = new GameState(boardData, targetCoords);
+
+                // Add all currently placed pieces to the state
+                for (const occupiedCoord of occupiedCoords) {
+                    state.occupied.add(`${occupiedCoord.row},${occupiedCoord.col}`);
+                }
+
+                // Determine which pieces are unused
+                const unusedPieceNames = piecesData
+                    .map(p => p.name)
+                    .filter(name => !usedPieces.has(name));
+
+                const unusedPieces = unusedPieceNames.map(name =>
+                    new Piece(name, piecesData.find(p => p.name === name).coords)
+                );
+
+                // If no pieces are unused, check if current state is complete
+                if (unusedPieces.length === 0) {
+                    const isComplete = state.isComplete();
+                    countSpan.textContent = isComplete ? '1' : '0';
+                    checkButton.textContent = isComplete ? 'Complete!' : 'Dead End!';
+                    checkButton.style.background = isComplete ? '#10b981' : '#ef4444';
+                    return;
+                }
+
+                // Count solutions from current state
+                let solutionCount = 0;
+                const countCallback = (count, solutions) => {
+                    solutionCount = count;
+                    countSpan.textContent = count;
+                };
+
+                const result = await solver.countAllSolutions(targetCoords, countCallback, state, unusedPieces);
+
+                // Final message with color coding
+                if (result.count === 0) {
+                    checkButton.textContent = 'Dead End!';
+                    checkButton.style.background = '#ef4444'; // Red
+                    countSpan.textContent = '0 (dead end!)';
+                } else if (result.count === 1) {
+                    checkButton.textContent = 'One Way!';
+                    checkButton.style.background = '#f59e0b'; // Orange
+                } else {
+                    checkButton.textContent = `${result.count} Paths`;
+                    checkButton.style.background = '#10b981'; // Green
+                }
+
+                // Re-enable button after checking (allow multiple checks)
+                checkButton.disabled = false;
+            } catch (error) {
+                console.error('Error checking current layout:', error);
+                alert('An error occurred while checking the layout');
+                checkButton.disabled = false;
+                checkButton.textContent = 'Check Current Layout';
+                checkButton.style.background = '#8b5cf6'; // Reset to purple
+            }
+        }
+
+        function resetCurrentLayoutCheck() {
+            // Hide and reset current layout counter
+            const counterDisplay = document.getElementById('current-layout-counter');
+            const checkButton = document.getElementById('modal-check-current');
+
+            if (counterDisplay) {
+                counterDisplay.style.display = 'none';
+                document.getElementById('current-layout-count').textContent = '0';
+            }
+
+            if (checkButton) {
+                checkButton.disabled = false;
+                checkButton.textContent = 'Check Current Layout';
+                checkButton.style.background = '#8b5cf6'; // Purple
+            }
         }
 
         function getHint() {
@@ -2775,6 +2906,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             // Remove piece from board
             occupiedCoords = occupiedCoords.filter(o => o.pieceName !== pieceName);
             usedPieces.delete(pieceName);
+
+            // Reset layout check since board state changed
+            resetCurrentLayoutCheck();
 
             selectedPieceIndex = pieceIndex;
             dragSourceType = 'board';
@@ -3105,6 +3239,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 selectedPieceCoords = [];
                 allOrientations = [];
                 currentOrientationIndex = 0;
+
+                // Reset layout check since board state changed
+                resetCurrentLayoutCheck();
 
                 renderBoard();
                 renderPieces();

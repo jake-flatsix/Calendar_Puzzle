@@ -41,13 +41,7 @@
         }
 
         .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 10px;
+            display: none; /* Hidden - using icon controls instead */
         }
 
         .date-selector {
@@ -261,16 +255,16 @@
         }
 
         /* Mobile Icon Controls */
-        .mobile-icon-controls {
-            display: none;
+        .icon-controls {
+            display: flex;
             justify-content: center;
             gap: 30px;
             margin-bottom: 8px;
             padding: 5px;
         }
 
-        .mobile-status {
-            display: none;
+        .status-text {
+            display: block;
             text-align: center;
             font-size: 13px;
             font-weight: bold;
@@ -278,7 +272,7 @@
             margin-bottom: 10px;
         }
 
-        .mobile-status.solved {
+        .status-text.solved {
             color: #22c55e;
         }
 
@@ -391,6 +385,15 @@
 
         .modal-button.warning:active {
             background: #d97706;
+        }
+
+        .modal-button.info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .modal-button.info:active {
+            background: #2563eb;
         }
 
         .modal-date-input {
@@ -658,18 +661,6 @@
             }
 
             /* Hide full controls, show icon controls on mobile */
-            .controls {
-                display: none;
-            }
-
-            .mobile-icon-controls {
-                display: flex;
-            }
-
-            .mobile-status {
-                display: block;
-            }
-
             .date-selector {
                 flex-wrap: wrap;
                 justify-content: center;
@@ -909,41 +900,25 @@
     <div class="container">
         <h1>📅 Calendar Puzzle Player</h1>
 
-        <!-- Mobile Icon Controls (only visible on mobile) -->
-        <div class="mobile-icon-controls">
-            <button class="icon-button calendar" id="mobile-calendar-btn" title="Set Date">
+        <!-- Icon Controls (both mobile and desktop) -->
+        <div class="icon-controls">
+            <button class="icon-button calendar" id="calendar-btn" title="Set Date">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
                 </svg>
             </button>
-            <button class="icon-button solve" id="mobile-solve-btn" title="Get Help">
+            <button class="icon-button solve" id="solve-btn" title="Get Help">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
                 </svg>
             </button>
-            <button class="icon-button reset" id="mobile-reset-btn" title="Reset">
+            <button class="icon-button reset" id="reset-btn" title="Reset">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                 </svg>
             </button>
         </div>
-        <div class="mobile-status" id="mobile-status">Select a date to start</div>
-
-        <!-- Desktop Controls (hidden on mobile) -->
-        <div class="controls">
-            <div class="date-selector">
-                <label for="date-input">Target Date:</label>
-                <input type="date" id="date-input">
-                <button>Set Date</button>
-                <button>Today</button>
-            </div>
-            <div class="status" id="status">Select a date to start</div>
-            <div class="action-buttons">
-                <button class="hint-button" id="hint-btn" disabled>Hint</button>
-                <button class="solve-button" id="solve-btn" disabled>Solve Puzzle</button>
-                <button class="reset-button">Reset</button>
-            </div>
-        </div>
+        <div class="status-text" id="status">Select a date to start</div>
 
         <div class="game-area">
             <div class="board-container">
@@ -1027,7 +1002,25 @@
             <div class="modal-buttons">
                 <button class="modal-button warning" id="modal-hint">Hint (Next Piece)</button>
                 <button class="modal-button success" id="modal-solve">Solve Puzzle</button>
+                <button class="modal-button info" id="modal-count">Count Solutions</button>
             </div>
+            <div id="solution-counter" style="display: none; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold; color: #667eea;">
+                Solutions found: <span id="solution-count">0</span>
+            </div>
+            <!-- Solution picker temporarily hidden - uncomment to re-enable
+            <div id="solution-picker" style="display: none; margin-top: 15px;">
+                <div style="text-align: center; margin-bottom: 10px; font-weight: bold; color: #333;">
+                    Browse Solutions
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <label for="solution-select" style="font-size: 14px;">Show Solution:</label>
+                    <select id="solution-select" style="padding: 8px; font-size: 14px; border-radius: 8px; border: 2px solid #667eea; background: white; cursor: pointer;">
+                        <!-- Options populated by JS -->
+                    </select>
+                    <button class="modal-button primary" id="show-solution-btn" style="margin: 0;">Display</button>
+                </div>
+            </div>
+            -->
         </div>
     </div>
 
@@ -1362,6 +1355,126 @@ Sep Oct Nov Dec 28 29 30 14`;
                 return null;
             }
 
+            async countAllSolutions(targetCoords, updateCallback) {
+                const state = new GameState(this.board, targetCoords);
+                const unusedPieces = [...this.pieces];
+
+                // Store all unique solutions
+                const solutions = [];
+                const uniqueBoards = new Set();
+                let totalFound = 0;
+
+                await this._backtrackCount(state, unusedPieces, (solution) => {
+                    totalFound++;
+                    // Create a canonical representation of the board state
+                    const boardHash = this._hashBoardState(solution);
+
+                    if (!uniqueBoards.has(boardHash)) {
+                        uniqueBoards.add(boardHash);
+                        solutions.push(solution);
+                        console.log(`Found unique solution #${solutions.length} (${totalFound} total solutions found so far)`);
+                        updateCallback(solutions.length, solutions);
+                    } else {
+                        console.log(`Duplicate solution found (total: ${totalFound}, unique: ${solutions.length})`);
+                    }
+                }, solutions);
+
+                console.log(`Search complete: ${totalFound} total solutions, ${solutions.length} unique`);
+                return { count: solutions.length, solutions };
+            }
+
+            _hashBoardState(placements) {
+                // Create a canonical representation including piece names and locations
+                // Sort by piece name first to ensure consistent ordering
+                const sortedPlacements = [...placements].sort((a, b) =>
+                    a.piece_name.localeCompare(b.piece_name)
+                );
+
+                const parts = [];
+                for (const placement of sortedPlacements) {
+                    // For each piece, create a sorted list of its coordinates
+                    const coords = placement.coords
+                        .map(c => `${c.row},${c.col}`)
+                        .sort();
+                    parts.push(`${placement.piece_name}:[${coords.join(';')}]`);
+                }
+
+                return parts.join('|');
+            }
+
+            async _backtrackCount(state, unusedPieces, solutionCallback, allSolutions) {
+                // Base case: all pieces placed
+                if (unusedPieces.length === 0) {
+                    if (state.isComplete()) {
+                        // Deep copy the current solution
+                        const solution = state.placements.map(p => ({
+                            piece_name: p.pieceName,
+                            orientation_index: p.orientationIdx,
+                            coords: p.absoluteCoords.map(c => ({ row: c.row, col: c.col }))
+                        }));
+                        solutionCallback(solution);
+                        // Yield to allow UI update
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                    return;
+                }
+
+                // Get next uncovered coordinate
+                const uncovered = state.getUncoveredCoords();
+                if (uncovered.length === 0) {
+                    if (state.isComplete()) {
+                        const solution = state.placements.map(p => ({
+                            piece_name: p.pieceName,
+                            orientation_index: p.orientationIdx,
+                            coords: p.absoluteCoords.map(c => ({ row: c.row, col: c.col }))
+                        }));
+                        solutionCallback(solution);
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                    return;
+                }
+
+                // Pick first uncovered coordinate as anchor
+                const targetCoord = uncovered.reduce((min, c) =>
+                    (c.row < min.row || (c.row === min.row && c.col < min.col)) ? c : min
+                );
+
+                // Try each remaining piece
+                for (let pieceIdx = 0; pieceIdx < unusedPieces.length; pieceIdx++) {
+                    const piece = unusedPieces[pieceIdx];
+                    const orientations = this.pieceOrientationsMap[piece.name];
+
+                    // Try all orientations
+                    for (let orientIdx = 0; orientIdx < orientations.length; orientIdx++) {
+                        const orientedPiece = orientations[orientIdx];
+
+                        // Try placing so piece covers target coordinate
+                        for (const pieceCoord of orientedPiece.coords) {
+                            const placementCoord = new Coord(
+                                targetCoord.row - pieceCoord.row,
+                                targetCoord.col - pieceCoord.col
+                            );
+
+                            if (state.canPlace(orientedPiece, placementCoord)) {
+                                // Place piece
+                                state.placePiece(orientedPiece, placementCoord, piece.name, orientIdx);
+
+                                // Recurse with remaining pieces
+                                const remaining = [
+                                    ...unusedPieces.slice(0, pieceIdx),
+                                    ...unusedPieces.slice(pieceIdx + 1)
+                                ];
+
+                                await this._backtrackCount(state, remaining, solutionCallback, allSolutions);
+
+                                // Backtrack
+                                state.removeLastPiece();
+                            }
+                        }
+                    }
+                }
+            }
+
             _backtrack(state, unusedPieces) {
                 // Base case: all pieces placed
                 if (unusedPieces.length === 0) {
@@ -1606,15 +1719,10 @@ Sep Oct Nov Dec 28 29 30 14`;
             addClickListener(setDateBtn, setDate);
             addClickListener(todayBtn, setToday);
 
-            // Desktop action buttons
-            addClickListener(document.getElementById('hint-btn'), getHint);
-            addClickListener(document.getElementById('solve-btn'), solvePuzzle);
-            addClickListener(document.querySelector('.reset-button'), resetGame);
-
-            // Mobile icon buttons
-            addClickListener(document.getElementById('mobile-calendar-btn'), openCalendarModal);
-            addClickListener(document.getElementById('mobile-solve-btn'), openSolveModal);
-            addClickListener(document.getElementById('mobile-reset-btn'), resetGame);
+            // Icon button actions (unified for desktop and mobile)
+            addClickListener(document.getElementById('calendar-btn'), openCalendarModal);
+            addClickListener(document.getElementById('solve-btn'), openSolveModal);
+            addClickListener(document.getElementById('reset-btn'), resetGame);
 
             // Modal buttons
             addClickListener(document.getElementById('modal-set-date'), () => {
@@ -1633,6 +1741,14 @@ Sep Oct Nov Dec 28 29 30 14`;
                 solvePuzzle();
                 closeSolveModal();
             });
+            addClickListener(document.getElementById('modal-count'), () => {
+                countSolutions();
+                // Don't close modal - keep it open to show counter
+            });
+            // Solution picker temporarily disabled
+            // addClickListener(document.getElementById('show-solution-btn'), () => {
+            //     showSelectedSolution();
+            // });
 
             // Close modals when clicking/tapping overlay (not content)
             const calendarModal = document.getElementById('calendar-modal');
@@ -1749,19 +1865,20 @@ Sep Oct Nov Dec 28 29 30 14`;
                 yearSelect.value = currentYear;
             }
 
-            // Sync with current date
+            // Sync with current date if there's a selected date
             const modalInput = document.getElementById('modal-date-input');
-            const desktopInput = document.getElementById('date-input');
-            modalInput.value = desktopInput.value;
 
-            // Parse current date and set dropdowns
-            if (desktopInput.value) {
-                const parts = desktopInput.value.split('-');
-                if (parts.length === 3) {
-                    document.getElementById('year-select').value = parseInt(parts[0], 10);
-                    document.getElementById('month-select').value = parseInt(parts[1], 10);
-                    document.getElementById('day-select').value = parseInt(parts[2], 10);
-                }
+            // If we have target coords, set the modal to today's date as default
+            if (targetCoords.length === 0) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth() + 1;
+                const day = today.getDate();
+
+                modalInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                document.getElementById('year-select').value = year;
+                document.getElementById('month-select').value = month;
+                document.getElementById('day-select').value = day;
             }
 
             document.getElementById('calendar-modal').classList.add('visible');
@@ -1776,33 +1893,85 @@ Sep Oct Nov Dec 28 29 30 14`;
                 alert('Please select a date first');
                 return;
             }
+
+            // Reset counter display
+            document.getElementById('solution-counter').style.display = 'none';
+            document.getElementById('solution-count').textContent = '0';
+
+            // Reset count button
+            const countButton = document.getElementById('modal-count');
+            countButton.disabled = false;
+            countButton.textContent = 'Count Solutions';
+
             document.getElementById('solve-modal').classList.add('visible');
         }
 
         function closeSolveModal() {
             document.getElementById('solve-modal').classList.remove('visible');
+
+            // Reset counter display when closing
+            document.getElementById('solution-counter').style.display = 'none';
+            document.getElementById('solution-count').textContent = '0';
+
+            // Reset count button
+            const countButton = document.getElementById('modal-count');
+            countButton.disabled = false;
+            countButton.textContent = 'Count Solutions';
+        }
+
+        function clearSolutionCount() {
+            // Clear stored solutions
+            allSolutions = [];
+
+            // Hide solution picker and counter
+            // document.getElementById('solution-picker').style.display = 'none'; // Temporarily disabled
+            document.getElementById('solution-counter').style.display = 'none';
+            document.getElementById('solution-count').textContent = '0';
+
+            // Reset count button
+            const countButton = document.getElementById('modal-count');
+            countButton.disabled = false;
+            countButton.textContent = 'Count Solutions';
         }
 
         function setDateFromModal() {
             const modalInput = document.getElementById('modal-date-input');
-            const desktopInput = document.getElementById('date-input');
             const yearSelect = document.getElementById('year-select');
             const monthSelect = document.getElementById('month-select');
             const daySelect = document.getElementById('day-select');
 
+            let dateStr;
             // Check if user entered a date in the date input
             if (modalInput.value) {
-                desktopInput.value = modalInput.value;
+                dateStr = modalInput.value;
             } else {
                 // Use dropdown values
                 const year = yearSelect.value || new Date().getFullYear();
                 const month = String(monthSelect.value).padStart(2, '0');
                 const day = String(daySelect.value).padStart(2, '0');
-                desktopInput.value = `${year}-${month}-${day}`;
-                modalInput.value = `${year}-${month}-${day}`;
+                dateStr = `${year}-${month}-${day}`;
+                modalInput.value = dateStr;
             }
 
-            setDate();
+            try {
+                // Parse date string to get month, day, weekday
+                const parsed = parseDateStr(dateStr);
+                targetDate = parsed;
+
+                // Get target coordinates from board
+                targetCoords = getTargetCoordsFromBoard(boardData, parsed.month, parsed.day, parsed.weekday);
+
+                const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
+                document.getElementById('status').textContent = statusText;
+
+                // Clear any counted solutions from previous date
+                clearSolutionCount();
+
+                resetGame(false);
+                renderBoard();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
         }
 
         function loadBoard() {
@@ -2172,11 +2341,6 @@ Sep Oct Nov Dec 28 29 30 14`;
 
                 const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
                 document.getElementById('status').textContent = statusText;
-                document.getElementById('mobile-status').textContent = statusText;
-
-                // Enable solve and hint buttons
-                document.getElementById('solve-btn').disabled = false;
-                document.getElementById('hint-btn').disabled = false;
 
                 resetGame(false);
                 renderBoard();
@@ -2186,12 +2350,25 @@ Sep Oct Nov Dec 28 29 30 14`;
         }
 
         function setToday() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            document.getElementById('date-input').value = `${year}-${month}-${day}`;
-            setDate();
+            try {
+                // Parse today's date
+                const parsed = parseDateStr('today');
+                targetDate = parsed;
+
+                // Get target coordinates from board
+                targetCoords = getTargetCoordsFromBoard(boardData, parsed.month, parsed.day, parsed.weekday);
+
+                const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
+                document.getElementById('status').textContent = statusText;
+
+                // Clear any counted solutions from previous date
+                clearSolutionCount();
+
+                resetGame(false);
+                renderBoard();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
         }
 
         function checkWin() {
@@ -2213,11 +2390,8 @@ Sep Oct Nov Dec 28 29 30 14`;
             if (isSolved) {
                 const statusText = '🎉 Puzzle Solved! Congratulations! 🎉';
                 const statusEl = document.getElementById('status');
-                const mobileStatusEl = document.getElementById('mobile-status');
                 statusEl.textContent = statusText;
-                mobileStatusEl.textContent = statusText;
                 statusEl.classList.add('solved');
-                mobileStatusEl.classList.add('solved');
             }
         }
 
@@ -2240,13 +2414,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 solution = null;
                 const statusText = 'Select a date to start';
                 document.getElementById('status').textContent = statusText;
-                document.getElementById('mobile-status').textContent = statusText;
-                document.getElementById('solve-btn').disabled = true;
-                document.getElementById('hint-btn').disabled = true;
             }
 
             document.getElementById('status').classList.remove('solved');
-            document.getElementById('mobile-status').classList.remove('solved');
             renderBoard();
             renderPieces();
         }
@@ -2302,6 +2472,110 @@ Sep Oct Nov Dec 28 29 30 14`;
             renderPieces();
 
             checkWin();
+        }
+
+        let allSolutions = []; // Store all counted solutions
+
+        async function countSolutions() {
+            if (!targetCoords.length) {
+                alert('Please select a date first');
+                return;
+            }
+
+            // Hide solution picker and reset
+            // const pickerDiv = document.getElementById('solution-picker'); // Temporarily disabled
+            // pickerDiv.style.display = 'none'; // Temporarily disabled
+            allSolutions = [];
+
+            // Show counter and reset to 0
+            const counterDisplay = document.getElementById('solution-counter');
+            const countSpan = document.getElementById('solution-count');
+            counterDisplay.style.display = 'block';
+            countSpan.textContent = '0';
+
+            // Disable count button during counting
+            const countButton = document.getElementById('modal-count');
+            countButton.disabled = true;
+            countButton.textContent = 'Counting...';
+
+            // Create solver if needed
+            if (!solver) {
+                const pieces = piecesData.map(p => new Piece(p.name, p.coords));
+                solver = new PuzzleSolver(boardData, pieces);
+            }
+
+            try {
+                // Count all unique solutions with real-time updates
+                const result = await solver.countAllSolutions(targetCoords, (count, solutions) => {
+                    countSpan.textContent = count;
+                    allSolutions = solutions;
+                });
+
+                // Final message
+                countButton.textContent = `Done! (${result.count} solution${result.count !== 1 ? 's' : ''})`;
+
+                // Solution picker temporarily disabled
+                // if (result.count > 0) {
+                //     const solutionSelect = document.getElementById('solution-select');
+                //     solutionSelect.innerHTML = '';
+                //
+                //     for (let i = 0; i < result.count; i++) {
+                //         const option = document.createElement('option');
+                //         option.value = i;
+                //         option.textContent = `#${i + 1}`;
+                //         solutionSelect.appendChild(option);
+                //     }
+                //
+                //     pickerDiv.style.display = 'block';
+                // }
+            } catch (error) {
+                console.error('Error counting solutions:', error);
+                alert('An error occurred while counting solutions');
+                countButton.disabled = false;
+                countButton.textContent = 'Count Solutions';
+            }
+        }
+
+        function showSelectedSolution() {
+            const solutionSelect = document.getElementById('solution-select');
+            const solutionIndex = parseInt(solutionSelect.value);
+
+            if (solutionIndex < 0 || solutionIndex >= allSolutions.length) {
+                alert('Invalid solution index');
+                return;
+            }
+
+            const selectedSolution = allSolutions[solutionIndex];
+
+            // Apply the selected solution to the board
+            occupiedCoords = [];
+            usedPieces.clear();
+
+            for (const placement of selectedSolution) {
+                const pieceIndex = piecesData.findIndex(p => p.name === placement.piece_name);
+                const pieceColor = pieceColors[pieceIndex];
+
+                for (const coord of placement.coords) {
+                    occupiedCoords.push({
+                        ...coord,
+                        color: pieceColor,
+                        pieceName: placement.piece_name,
+                        pieceIndex: pieceIndex,
+                        orientationIndex: placement.orientation_index
+                    });
+                }
+                usedPieces.add(placement.piece_name);
+            }
+
+            selectedPieceIndex = null;
+            selectedPieceCoords = [];
+
+            renderBoard();
+            renderPieces();
+            checkWin();
+
+            // Close the modal
+            closeSolveModal();
         }
 
         function getHint() {

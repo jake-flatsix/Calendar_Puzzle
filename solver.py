@@ -63,6 +63,89 @@ class GameState:
         """Get coordinates that are not yet covered."""
         return (self.board.coords - self.target_coords) - self.occupied
 
+    def count_regions_fast(self) -> int:
+        """
+        Count disconnected regions in uncovered space.
+        Early exit optimization: returns 2 as soon as second region found.
+        """
+        uncovered = self.get_uncovered_coords()
+
+        if len(uncovered) <= 1:
+            return len(uncovered)
+
+        visited = set()
+        region_count = 0
+
+        for start in uncovered:
+            if start in visited:
+                continue
+
+            region_count += 1
+
+            # Early exit: we only care about "1 vs multiple"
+            if region_count > 1:
+                return 2
+
+            # Flood-fill this region
+            stack = [start]
+            while stack:
+                current = stack.pop()
+                if current in visited:
+                    continue
+                visited.add(current)
+
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    neighbor = Coord(current.row + dr, current.col + dc)
+                    if neighbor in uncovered and neighbor not in visited:
+                        stack.append(neighbor)
+
+        return region_count
+
+    def has_dead_end(self) -> bool:
+        """
+        Check if any isolated whitespace region cannot be filled.
+        Returns True if any region size is not divisible by 5.
+
+        Optimized with early-exit: if only 1 region exists, skip expensive size checking.
+        """
+        uncovered = self.get_uncovered_coords()
+
+        if len(uncovered) == 0:
+            return False
+
+        # Fast path: if only 1 region, no dead end possible
+        if self.count_regions_fast() == 1:
+            return False
+
+        # Slow path: multiple regions exist, check each region's size
+        visited = set()
+
+        for start in uncovered:
+            if start in visited:
+                continue
+
+            # Flood-fill to find this region's size
+            region_size = 0
+            stack = [start]
+
+            while stack:
+                current = stack.pop()
+                if current in visited:
+                    continue
+                visited.add(current)
+                region_size += 1
+
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    neighbor = Coord(current.row + dr, current.col + dc)
+                    if neighbor in uncovered and neighbor not in visited:
+                        stack.append(neighbor)
+
+            # Check if this region is unfillable
+            if region_size % 5 != 0:
+                return True  # Dead end!
+
+        return False
+
 
 class PuzzleSolver:
     """Solves the calendar puzzle using backtracking."""
@@ -115,12 +198,12 @@ class PuzzleSolver:
         if not unused_pieces:
             return state.is_complete()
 
-        # Get next uncovered coordinate to fill (optimization)
+        # Get next uncovered coordinate to fill
         uncovered = state.get_uncovered_coords()
         if not uncovered:
             return state.is_complete()
 
-        # Pick the first uncovered coordinate as anchor point
+        # Pick the first uncovered coordinate (top-left) as anchor point
         target_coord = min(uncovered, key=lambda c: (c.row, c.col))
 
         # Try each remaining piece
@@ -141,6 +224,13 @@ class PuzzleSolver:
                     if state.can_place(oriented_piece, placement_coord):
                         # Place the piece
                         state.place_piece(oriented_piece, placement_coord, piece.name, orientation_idx)
+
+                        # Dead-end pruning: only check after 5+ pieces placed
+                        # (early placements unlikely to fragment the space)
+                        if len(state.placements) >= 5 and state.has_dead_end():
+                            # Dead end detected, skip this branch
+                            state.remove_last_piece()
+                            continue
 
                         # Recurse with remaining pieces
                         remaining = unused_pieces[:piece_idx] + unused_pieces[piece_idx + 1:]

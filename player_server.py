@@ -184,6 +184,17 @@ def solve_puzzle():
         })
 
 
+@app.route('/difficulty_ratings.json')
+def get_difficulty_ratings():
+    """Serve the difficulty ratings JSON file."""
+    try:
+        with open('difficulty_ratings.json', 'r') as f:
+            ratings = json.load(f)
+        return jsonify(ratings)
+    except FileNotFoundError:
+        return jsonify({})
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("CALENDAR PUZZLE - INTERACTIVE PLAYER")

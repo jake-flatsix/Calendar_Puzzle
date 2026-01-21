@@ -276,6 +276,60 @@
             color: #22c55e;
         }
 
+        .difficulty-display {
+            display: none;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .difficulty-display.visible {
+            display: block;
+        }
+
+        .difficulty-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .difficulty-stars {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .difficulty-info {
+            font-size: 13px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .calculate-difficulty-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .calculate-difficulty-btn:hover {
+            background: #5568d3;
+        }
+
+        .calculate-difficulty-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .icon-button {
             background: none;
             border: none;
@@ -928,6 +982,16 @@
             </button>
         </div>
         <div class="status-text" id="status">Select a date to start</div>
+
+        <!-- Difficulty Display -->
+        <div class="difficulty-display" id="difficulty-display">
+            <div class="difficulty-label">Puzzle Difficulty</div>
+            <div class="difficulty-stars" id="difficulty-stars"></div>
+            <div class="difficulty-info" id="difficulty-info"></div>
+            <button class="calculate-difficulty-btn" id="calculate-difficulty-btn" style="display: none;">
+                Calculate Difficulty
+            </button>
+        </div>
 
         <div class="game-area">
             <div class="board-container">
@@ -1645,6 +1709,10 @@ Sep Oct Nov Dec 28 29 30 14`;
         let allOrientations = [];
         let pieceOrientations = {};  // Track orientation index for each piece
 
+        // Difficulty ratings
+        let difficultyRatings = {};
+        let currentDateStr = null;
+
         // Drag state
         let isDragging = false;
         let dragStartTime = 0;
@@ -1671,8 +1739,139 @@ Sep Oct Nov Dec 28 29 30 14`;
             '#6366f1'  // indigo (Piece10)
         ];
 
+        // Load difficulty ratings from JSON file
+        async function loadDifficultyRatings() {
+            try {
+                const response = await fetch('difficulty_ratings.json');
+                if (response.ok) {
+                    difficultyRatings = await response.json();
+                    // Also load from localStorage for user-calculated difficulties
+                    const savedRatings = localStorage.getItem('userDifficultyRatings');
+                    if (savedRatings) {
+                        const userRatings = JSON.parse(savedRatings);
+                        difficultyRatings = { ...difficultyRatings, ...userRatings };
+                    }
+                    console.log(`Loaded ${Object.keys(difficultyRatings).length} difficulty ratings`);
+                } else {
+                    console.warn('Could not load difficulty ratings file');
+                }
+            } catch (error) {
+                console.error('Error loading difficulty ratings:', error);
+            }
+        }
+
+        // Display difficulty for the current date
+        function displayDifficulty(dateStr) {
+            currentDateStr = dateStr;
+            const difficultyDisplay = document.getElementById('difficulty-display');
+            const starsElement = document.getElementById('difficulty-stars');
+            const infoElement = document.getElementById('difficulty-info');
+            const calculateBtn = document.getElementById('calculate-difficulty-btn');
+
+            const rating = difficultyRatings[dateStr];
+
+            if (rating) {
+                // Show difficulty rating
+                const stars = '★'.repeat(rating.stars) + '☆'.repeat(5 - rating.stars);
+                starsElement.textContent = stars;
+                infoElement.textContent = `${rating.label} (${rating.solutions} solutions)`;
+                calculateBtn.style.display = 'none';
+                difficultyDisplay.classList.add('visible');
+            } else {
+                // Show calculate button
+                starsElement.textContent = '';
+                infoElement.textContent = 'Difficulty not yet calculated';
+                calculateBtn.style.display = 'inline-block';
+                difficultyDisplay.classList.add('visible');
+            }
+        }
+
+        // Hide difficulty display
+        function hideDifficulty() {
+            const difficultyDisplay = document.getElementById('difficulty-display');
+            difficultyDisplay.classList.remove('visible');
+            currentDateStr = null;
+        }
+
+        // Calculate difficulty for current date
+        async function calculateDifficulty() {
+            if (!currentDateStr || !targetCoords || targetCoords.length === 0) {
+                alert('Please select a date first');
+                return;
+            }
+
+            const calculateBtn = document.getElementById('calculate-difficulty-btn');
+            const originalText = calculateBtn.textContent;
+            calculateBtn.disabled = true;
+            calculateBtn.textContent = 'Calculating...';
+
+            try {
+                // Use the existing countSolutions functionality
+                let solutionCount = 0;
+                const countCallback = (count, solutions) => {
+                    solutionCount = count;
+                };
+
+                const result = await solver.countAllSolutions(targetCoords, countCallback);
+                solutionCount = result.count;
+
+                // Calculate difficulty rating based on solution count
+                const rating = calculateDifficultyRating(solutionCount);
+
+                // Save to localStorage
+                const savedRatings = localStorage.getItem('userDifficultyRatings');
+                const userRatings = savedRatings ? JSON.parse(savedRatings) : {};
+                userRatings[currentDateStr] = rating;
+                localStorage.setItem('userDifficultyRatings', JSON.stringify(userRatings));
+
+                // Update in-memory ratings
+                difficultyRatings[currentDateStr] = rating;
+
+                // Display the result
+                displayDifficulty(currentDateStr);
+
+                console.log(`Calculated difficulty for ${currentDateStr}: ${rating.stars} stars (${rating.solutions} solutions)`);
+            } catch (error) {
+                console.error('Error calculating difficulty:', error);
+                alert('An error occurred while calculating difficulty');
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = originalText;
+            }
+        }
+
+        // Calculate difficulty rating from solution count
+        function calculateDifficultyRating(solutionCount) {
+            // These thresholds are based on the 2026 data analysis
+            // Using percentile-based ranking
+            let stars, label;
+
+            if (solutionCount <= 200) {
+                stars = 5;
+                label = 'Expert';
+            } else if (solutionCount <= 350) {
+                stars = 4;
+                label = 'Hard';
+            } else if (solutionCount <= 500) {
+                stars = 3;
+                label = 'Medium';
+            } else if (solutionCount <= 700) {
+                stars = 2;
+                label = 'Easy';
+            } else {
+                stars = 1;
+                label = 'Very Easy';
+            }
+
+            return {
+                solutions: solutionCount,
+                stars: stars,
+                label: label
+            };
+        }
+
         // Initialize
         function init() {
+            loadDifficultyRatings();
             loadBoard();
             loadPieces();
 
@@ -1747,7 +1946,9 @@ Sep Oct Nov Dec 28 29 30 14`;
             });
             addClickListener(document.getElementById('modal-check-current'), () => {
                 checkCurrentLayout();
-                // Don't close modal - keep it open to show result
+            });
+            addClickListener(document.getElementById('calculate-difficulty-btn'), () => {
+                calculateDifficulty();
             });
             // Solution picker temporarily disabled
             // addClickListener(document.getElementById('show-solution-btn'), () => {
@@ -1961,6 +2162,9 @@ Sep Oct Nov Dec 28 29 30 14`;
 
                 const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
                 document.getElementById('status').textContent = statusText;
+
+                // Display difficulty rating
+                displayDifficulty(dateStr);
 
                 // Clear any counted solutions from previous date
                 clearSolutionCount();
@@ -2340,6 +2544,9 @@ Sep Oct Nov Dec 28 29 30 14`;
                 const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
                 document.getElementById('status').textContent = statusText;
 
+                // Display difficulty rating
+                displayDifficulty(dateStr);
+
                 resetGame(false);
                 renderBoard();
             } catch (error) {
@@ -2358,6 +2565,11 @@ Sep Oct Nov Dec 28 29 30 14`;
 
                 const statusText = `Target: ${parsed.month} ${parsed.day}, ${parsed.weekday}`;
                 document.getElementById('status').textContent = statusText;
+
+                // Display difficulty rating
+                const today = new Date();
+                const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                displayDifficulty(todayStr);
 
                 // Clear any counted solutions from previous date
                 clearSolutionCount();

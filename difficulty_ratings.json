@@ -1,0 +1,1827 @@
+{
+  "2026-01-01": {
+    "solutions": 454,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-02": {
+    "solutions": 529,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-03": {
+    "solutions": 423,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-01-04": {
+    "solutions": 1264,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-05": {
+    "solutions": 761,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-06": {
+    "solutions": 1064,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-07": {
+    "solutions": 764,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-08": {
+    "solutions": 524,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-09": {
+    "solutions": 648,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-10": {
+    "solutions": 613,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-11": {
+    "solutions": 1191,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-12": {
+    "solutions": 583,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-13": {
+    "solutions": 802,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-14": {
+    "solutions": 2008,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-15": {
+    "solutions": 665,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-16": {
+    "solutions": 575,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-17": {
+    "solutions": 601,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-18": {
+    "solutions": 1210,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-19": {
+    "solutions": 523,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-20": {
+    "solutions": 960,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-21": {
+    "solutions": 560,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-22": {
+    "solutions": 726,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-23": {
+    "solutions": 712,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-24": {
+    "solutions": 637,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-01-25": {
+    "solutions": 1767,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-26": {
+    "solutions": 788,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-27": {
+    "solutions": 1273,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-28": {
+    "solutions": 761,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-29": {
+    "solutions": 443,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-01-30": {
+    "solutions": 867,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-01-31": {
+    "solutions": 502,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-01": {
+    "solutions": 581,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-02": {
+    "solutions": 302,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-02-03": {
+    "solutions": 471,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-04": {
+    "solutions": 433,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-05": {
+    "solutions": 110,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-02-06": {
+    "solutions": 406,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-07": {
+    "solutions": 407,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-08": {
+    "solutions": 628,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-09": {
+    "solutions": 163,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-02-10": {
+    "solutions": 898,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-02-11": {
+    "solutions": 349,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-12": {
+    "solutions": 169,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-02-13": {
+    "solutions": 305,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-02-14": {
+    "solutions": 911,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-02-15": {
+    "solutions": 655,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-16": {
+    "solutions": 429,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-17": {
+    "solutions": 700,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-02-18": {
+    "solutions": 477,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-19": {
+    "solutions": 230,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-02-20": {
+    "solutions": 371,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-21": {
+    "solutions": 274,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-02-22": {
+    "solutions": 1255,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-02-23": {
+    "solutions": 451,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-24": {
+    "solutions": 665,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-02-25": {
+    "solutions": 434,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-02-26": {
+    "solutions": 277,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-02-27": {
+    "solutions": 221,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-02-28": {
+    "solutions": 232,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-01": {
+    "solutions": 471,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-03-02": {
+    "solutions": 225,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-03": {
+    "solutions": 393,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-03-04": {
+    "solutions": 182,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-05": {
+    "solutions": 162,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-06": {
+    "solutions": 86,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-07": {
+    "solutions": 338,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-08": {
+    "solutions": 648,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-03-09": {
+    "solutions": 83,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-10": {
+    "solutions": 321,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-11": {
+    "solutions": 340,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-12": {
+    "solutions": 206,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-13": {
+    "solutions": 212,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-14": {
+    "solutions": 696,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-03-15": {
+    "solutions": 437,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-03-16": {
+    "solutions": 373,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-03-17": {
+    "solutions": 364,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-03-18": {
+    "solutions": 256,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-19": {
+    "solutions": 210,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-20": {
+    "solutions": 258,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-21": {
+    "solutions": 211,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-22": {
+    "solutions": 839,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-03-23": {
+    "solutions": 297,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-03-24": {
+    "solutions": 520,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-03-25": {
+    "solutions": 346,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-03-26": {
+    "solutions": 195,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-27": {
+    "solutions": 128,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-28": {
+    "solutions": 168,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-29": {
+    "solutions": 455,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-03-30": {
+    "solutions": 223,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-03-31": {
+    "solutions": 343,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-04-01": {
+    "solutions": 785,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-04-02": {
+    "solutions": 144,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-03": {
+    "solutions": 264,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-04": {
+    "solutions": 443,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-04-05": {
+    "solutions": 481,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-04-06": {
+    "solutions": 418,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-04-07": {
+    "solutions": 204,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-08": {
+    "solutions": 702,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-04-09": {
+    "solutions": 162,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-10": {
+    "solutions": 200,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-11": {
+    "solutions": 252,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-12": {
+    "solutions": 585,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-04-13": {
+    "solutions": 287,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-14": {
+    "solutions": 1198,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-04-15": {
+    "solutions": 177,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-16": {
+    "solutions": 306,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-17": {
+    "solutions": 279,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-18": {
+    "solutions": 218,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-04-19": {
+    "solutions": 618,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-04-20": {
+    "solutions": 273,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-21": {
+    "solutions": 249,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-22": {
+    "solutions": 602,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-04-23": {
+    "solutions": 333,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-24": {
+    "solutions": 341,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-04-25": {
+    "solutions": 294,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-26": {
+    "solutions": 675,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-04-27": {
+    "solutions": 325,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-28": {
+    "solutions": 273,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-29": {
+    "solutions": 319,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-04-30": {
+    "solutions": 359,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-01": {
+    "solutions": 305,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-02": {
+    "solutions": 390,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-03": {
+    "solutions": 817,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-04": {
+    "solutions": 479,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-05-05": {
+    "solutions": 849,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-06": {
+    "solutions": 408,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-07": {
+    "solutions": 386,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-08": {
+    "solutions": 325,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-09": {
+    "solutions": 266,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-10": {
+    "solutions": 360,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-11": {
+    "solutions": 360,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-12": {
+    "solutions": 630,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-05-13": {
+    "solutions": 368,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-14": {
+    "solutions": 1056,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-15": {
+    "solutions": 287,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-16": {
+    "solutions": 424,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-17": {
+    "solutions": 757,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-18": {
+    "solutions": 322,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-19": {
+    "solutions": 601,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-05-20": {
+    "solutions": 361,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-21": {
+    "solutions": 166,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-05-22": {
+    "solutions": 502,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-05-23": {
+    "solutions": 340,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-05-24": {
+    "solutions": 985,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-25": {
+    "solutions": 415,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-26": {
+    "solutions": 779,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-05-27": {
+    "solutions": 516,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-05-28": {
+    "solutions": 341,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-05-29": {
+    "solutions": 185,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-05-30": {
+    "solutions": 216,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-05-31": {
+    "solutions": 724,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-06-01": {
+    "solutions": 263,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-02": {
+    "solutions": 296,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-03": {
+    "solutions": 120,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-04": {
+    "solutions": 157,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-05": {
+    "solutions": 200,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-06": {
+    "solutions": 271,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-07": {
+    "solutions": 571,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-06-08": {
+    "solutions": 307,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-09": {
+    "solutions": 485,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-06-10": {
+    "solutions": 378,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-06-11": {
+    "solutions": 304,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-12": {
+    "solutions": 199,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-13": {
+    "solutions": 261,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-14": {
+    "solutions": 1015,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-06-15": {
+    "solutions": 244,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-16": {
+    "solutions": 229,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-17": {
+    "solutions": 254,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-18": {
+    "solutions": 187,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-19": {
+    "solutions": 215,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-20": {
+    "solutions": 295,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-21": {
+    "solutions": 457,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-06-22": {
+    "solutions": 479,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-06-23": {
+    "solutions": 238,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-24": {
+    "solutions": 253,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-06-25": {
+    "solutions": 213,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-26": {
+    "solutions": 241,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-27": {
+    "solutions": 356,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-06-28": {
+    "solutions": 399,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-06-29": {
+    "solutions": 186,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-06-30": {
+    "solutions": 460,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-01": {
+    "solutions": 357,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-07-02": {
+    "solutions": 93,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-03": {
+    "solutions": 268,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-04": {
+    "solutions": 400,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-07-05": {
+    "solutions": 353,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-07-06": {
+    "solutions": 199,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-07": {
+    "solutions": 479,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-08": {
+    "solutions": 475,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-09": {
+    "solutions": 155,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-10": {
+    "solutions": 175,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-11": {
+    "solutions": 217,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-12": {
+    "solutions": 574,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-13": {
+    "solutions": 224,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-14": {
+    "solutions": 990,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-07-15": {
+    "solutions": 150,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-16": {
+    "solutions": 176,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-17": {
+    "solutions": 350,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-07-18": {
+    "solutions": 212,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-19": {
+    "solutions": 584,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-20": {
+    "solutions": 215,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-21": {
+    "solutions": 264,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-22": {
+    "solutions": 228,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-23": {
+    "solutions": 168,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-24": {
+    "solutions": 280,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-25": {
+    "solutions": 257,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-26": {
+    "solutions": 532,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-07-27": {
+    "solutions": 266,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-28": {
+    "solutions": 280,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-07-29": {
+    "solutions": 208,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-07-30": {
+    "solutions": 361,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-07-31": {
+    "solutions": 222,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-08-01": {
+    "solutions": 271,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-02": {
+    "solutions": 743,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-03": {
+    "solutions": 912,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-04": {
+    "solutions": 765,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-05": {
+    "solutions": 529,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-06": {
+    "solutions": 256,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-07": {
+    "solutions": 478,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-08": {
+    "solutions": 327,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-09": {
+    "solutions": 942,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-10": {
+    "solutions": 467,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-11": {
+    "solutions": 398,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-12": {
+    "solutions": 425,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-13": {
+    "solutions": 329,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-14": {
+    "solutions": 1424,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-15": {
+    "solutions": 303,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-16": {
+    "solutions": 311,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-08-17": {
+    "solutions": 352,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-18": {
+    "solutions": 630,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-19": {
+    "solutions": 446,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-20": {
+    "solutions": 372,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-21": {
+    "solutions": 399,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-22": {
+    "solutions": 435,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-23": {
+    "solutions": 1106,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-24": {
+    "solutions": 393,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-25": {
+    "solutions": 706,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-26": {
+    "solutions": 522,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-27": {
+    "solutions": 540,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-08-28": {
+    "solutions": 353,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-29": {
+    "solutions": 425,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-08-30": {
+    "solutions": 1085,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-08-31": {
+    "solutions": 229,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-09-01": {
+    "solutions": 736,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-02": {
+    "solutions": 1125,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-03": {
+    "solutions": 394,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-09-04": {
+    "solutions": 857,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-05": {
+    "solutions": 711,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-06": {
+    "solutions": 1588,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-07": {
+    "solutions": 731,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-08": {
+    "solutions": 1162,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-09": {
+    "solutions": 1045,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-10": {
+    "solutions": 464,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-11": {
+    "solutions": 641,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-12": {
+    "solutions": 418,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-09-13": {
+    "solutions": 1514,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-14": {
+    "solutions": 1681,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-15": {
+    "solutions": 711,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-16": {
+    "solutions": 857,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-17": {
+    "solutions": 401,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-09-18": {
+    "solutions": 475,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-19": {
+    "solutions": 507,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-20": {
+    "solutions": 1539,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-21": {
+    "solutions": 429,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-09-22": {
+    "solutions": 960,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-23": {
+    "solutions": 1042,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-24": {
+    "solutions": 587,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-25": {
+    "solutions": 671,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-26": {
+    "solutions": 630,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-27": {
+    "solutions": 2281,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-28": {
+    "solutions": 476,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-09-29": {
+    "solutions": 751,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-09-30": {
+    "solutions": 841,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-10-01": {
+    "solutions": 293,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-02": {
+    "solutions": 283,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-03": {
+    "solutions": 238,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-10-04": {
+    "solutions": 1197,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-10-05": {
+    "solutions": 448,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-06": {
+    "solutions": 665,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-07": {
+    "solutions": 405,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-08": {
+    "solutions": 417,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-09": {
+    "solutions": 365,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-10": {
+    "solutions": 283,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-11": {
+    "solutions": 817,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-10-12": {
+    "solutions": 301,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-13": {
+    "solutions": 539,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-14": {
+    "solutions": 1268,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-10-15": {
+    "solutions": 378,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-16": {
+    "solutions": 502,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-17": {
+    "solutions": 252,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-18": {
+    "solutions": 541,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-19": {
+    "solutions": 322,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-20": {
+    "solutions": 516,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-21": {
+    "solutions": 365,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-22": {
+    "solutions": 267,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-23": {
+    "solutions": 148,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-10-24": {
+    "solutions": 381,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-25": {
+    "solutions": 918,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-10-26": {
+    "solutions": 389,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-10-27": {
+    "solutions": 626,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-28": {
+    "solutions": 321,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-29": {
+    "solutions": 259,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-10-30": {
+    "solutions": 499,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-10-31": {
+    "solutions": 249,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-01": {
+    "solutions": 503,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-02": {
+    "solutions": 236,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-03": {
+    "solutions": 423,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-11-04": {
+    "solutions": 483,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-05": {
+    "solutions": 301,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-06": {
+    "solutions": 254,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-07": {
+    "solutions": 298,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-08": {
+    "solutions": 491,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-09": {
+    "solutions": 100,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-10": {
+    "solutions": 537,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-11": {
+    "solutions": 370,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-11-12": {
+    "solutions": 176,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-13": {
+    "solutions": 232,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-14": {
+    "solutions": 680,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-11-15": {
+    "solutions": 508,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-16": {
+    "solutions": 219,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-17": {
+    "solutions": 435,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-11-18": {
+    "solutions": 283,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-19": {
+    "solutions": 216,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-20": {
+    "solutions": 340,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-11-21": {
+    "solutions": 191,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-22": {
+    "solutions": 479,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-11-23": {
+    "solutions": 209,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-24": {
+    "solutions": 167,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-25": {
+    "solutions": 376,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-11-26": {
+    "solutions": 239,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-27": {
+    "solutions": 192,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-28": {
+    "solutions": 169,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-11-29": {
+    "solutions": 397,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-11-30": {
+    "solutions": 199,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-01": {
+    "solutions": 273,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-02": {
+    "solutions": 432,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-03": {
+    "solutions": 202,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-04": {
+    "solutions": 472,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-12-05": {
+    "solutions": 360,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-06": {
+    "solutions": 578,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-12-07": {
+    "solutions": 408,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-08": {
+    "solutions": 506,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-12-09": {
+    "solutions": 605,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-12-10": {
+    "solutions": 355,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-11": {
+    "solutions": 315,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-12": {
+    "solutions": 244,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-13": {
+    "solutions": 726,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-12-14": {
+    "solutions": 698,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-12-15": {
+    "solutions": 249,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-16": {
+    "solutions": 241,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-17": {
+    "solutions": 244,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-18": {
+    "solutions": 258,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-19": {
+    "solutions": 271,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-20": {
+    "solutions": 437,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-21": {
+    "solutions": 225,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-22": {
+    "solutions": 865,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-12-23": {
+    "solutions": 349,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-24": {
+    "solutions": 440,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-25": {
+    "solutions": 198,
+    "stars": 5,
+    "label": "Expert"
+  },
+  "2026-12-26": {
+    "solutions": 319,
+    "stars": 4,
+    "label": "Hard"
+  },
+  "2026-12-27": {
+    "solutions": 900,
+    "stars": 1,
+    "label": "Very Easy"
+  },
+  "2026-12-28": {
+    "solutions": 613,
+    "stars": 2,
+    "label": "Easy"
+  },
+  "2026-12-29": {
+    "solutions": 363,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-30": {
+    "solutions": 391,
+    "stars": 3,
+    "label": "Medium"
+  },
+  "2026-12-31": {
+    "solutions": 338,
+    "stars": 4,
+    "label": "Hard"
+  }
+}
